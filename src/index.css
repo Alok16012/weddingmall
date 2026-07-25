@@ -23,15 +23,16 @@
   --color-warning: #b4690e;
   --color-danger: #c62828;
 
-  /* Radii — 16–28px cards/hero, smaller for fields */
-  --radius-field: 12px;
-  --radius-card: 20px;
-  --radius-hero: 28px;
+  /* Radii — compact, MakeMyTrip-style (subtle rounding, not oversized) */
+  --radius-field: 10px;
+  --radius-card: 14px;
+  --radius-hero: 18px;
   --radius-pill: 999px;
 
-  /* Typography — display for hero, sans for controls, tabular for figures */
-  --font-display: 'Fraunces', 'Georgia', serif;
-  --font-sans: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+  /* Typography — one humanist sans family (MakeMyTrip-style), many weights.
+     MMT ships proprietary "Okra"; DM Sans is the closest free match. */
+  --font-display: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
 
   /* Elevation — spatial depth */
   --shadow-card: 0 2px 8px rgb(25 25 29 / 0.06), 0 12px 28px rgb(25 25 29 / 0.06);
@@ -52,7 +53,7 @@
     font-family: var(--font-sans);
     font-size: 16px;
     line-height: 1.5;
-    letter-spacing: -0.006em; /* Geist reads cleaner very slightly tightened */
+    letter-spacing: -0.006em; /* DM Sans reads cleaner very slightly tightened */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -67,17 +68,18 @@
     font-feature-settings: 'tnum';
     letter-spacing: 0;
   }
-  /* Display face — Fraunces, optical-sized, balanced multi-line headings */
+  /* Headings — DM Sans, tight modern tracking, balanced multi-line wrapping */
   h1, h2, h3 {
     font-family: var(--font-display);
     font-optical-sizing: auto;
-    line-height: 1.08;
+    font-weight: 700;
+    line-height: 1.18;
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
   h3 {
-    line-height: 1.2;
-    letter-spacing: -0.01em; /* smaller display sizes need less negative tracking */
+    line-height: 1.25;
+    letter-spacing: -0.01em;
   }
   /* Respect reduced-motion */
   @media (prefers-reduced-motion: reduce) {

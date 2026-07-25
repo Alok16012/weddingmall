@@ -79,31 +79,34 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="space-y-7 px-4">
-        {/* Hero */}
-        <section className="relative overflow-hidden rounded-[var(--radius-hero)] text-white shadow-[var(--shadow-float)]">
-          <img src={heroImg} alt="Decorated wedding mandap with floral drapes" className="h-72 w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/40 to-ink/10" />
-          <div className="absolute inset-x-0 bottom-0 space-y-3 p-5">
-            <Badge tone="coral" className="bg-white/90">
-              <Crown className="h-3.5 w-3.5" aria-hidden /> India&apos;s #1 Wedding Marketplace
-            </Badge>
-            <h1 className="max-w-[15ch] text-4xl font-semibold leading-[1.05]">Plan Your Dream Wedding</h1>
-            <p className="text-sm text-white/85">Venues, vendors &amp; everything you need</p>
-            <Link to="/explore" className={buttonClasses({ className: 'mt-1' })}>
-              Start Planning <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </section>
+      <div className="space-y-6 px-4">
+        {/* Hero + search — grouped so the search overlap doesn't fight the page rhythm */}
+        <div className="relative">
+          <section className="relative overflow-hidden rounded-[var(--radius-hero)] text-white shadow-[var(--shadow-float)]">
+            <img src={heroImg} alt="Decorated wedding mandap with floral drapes" className="h-72 w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/40 to-ink/10" />
+            {/* Extra bottom padding keeps the CTA clear of the overlapping search bar */}
+            <div className="absolute inset-x-0 bottom-0 space-y-2.5 p-5 pb-12">
+              <Badge tone="coral" className="bg-white/90">
+                <Crown className="h-3.5 w-3.5" aria-hidden /> India&apos;s #1 Wedding Marketplace
+              </Badge>
+              <h1 className="max-w-[15ch] text-[2rem] font-bold leading-[1.1]">Plan Your Dream Wedding</h1>
+              <p className="text-sm text-white/85">Venues, vendors &amp; everything you need</p>
+              <Link to="/explore" className={buttonClasses({ size: 'sm', className: 'mt-1' })}>
+                Start Planning <ChevronRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </section>
 
-        {/* Search */}
-        <Link
-          to="/explore"
-          className="-mt-12 relative z-10 flex items-center gap-3 rounded-[var(--radius-pill)] bg-surface px-5 py-4 text-muted shadow-[var(--shadow-float)]"
-        >
-          <Search className="h-5 w-5" aria-hidden />
-          Search venues, vendors, packages
-        </Link>
+          {/* Search — controlled overlap, isolated from the outer space-y */}
+          <Link
+            to="/explore"
+            className="relative z-10 -mt-6 mx-1 flex items-center gap-3 rounded-[var(--radius-field)] bg-surface px-4 py-3.5 text-muted shadow-[var(--shadow-float)]"
+          >
+            <Search className="h-5 w-5" aria-hidden />
+            Search venues, vendors, packages
+          </Link>
+        </div>
 
         {/* Trust signals */}
         <TrustStrip />
