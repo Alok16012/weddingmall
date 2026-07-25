@@ -1,0 +1,112 @@
+@import 'tailwindcss';
+
+/*
+ * WeddingMall design tokens — spec §4 Experience & Visual System.
+ * Celebratory editorial warmth + controlled liquid-glass + spatial depth.
+ */
+@theme {
+  /* Brand */
+  --color-coral: #ff5a52; /* Primary */
+  --color-coral-600: #f0463d;
+  --color-coral-100: #ffe4e2;
+  --color-saffron: #ff9b2f; /* Secondary */
+  --color-saffron-100: #ffedd6;
+  --color-ink: #19191d; /* High-contrast near-black */
+  --color-ink-soft: #4a4a52;
+  --color-muted: #6b6b73;
+  --color-canvas: #fffdfc; /* Warm white — never flat clinical white */
+  --color-surface: #ffffff;
+  --color-surface-2: #fbf6f3;
+  --color-line: #efe7e2;
+  --color-success: #15956a; /* Verified / success only */
+  --color-success-100: #dcf3ea;
+  --color-warning: #b4690e;
+  --color-danger: #c62828;
+
+  /* Radii — 16–28px cards/hero, smaller for fields */
+  --radius-field: 12px;
+  --radius-card: 20px;
+  --radius-hero: 28px;
+  --radius-pill: 999px;
+
+  /* Typography — display for hero, sans for controls, tabular for figures */
+  --font-display: 'Fraunces', 'Georgia', serif;
+  --font-sans: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Elevation — spatial depth */
+  --shadow-card: 0 2px 8px rgb(25 25 29 / 0.06), 0 12px 28px rgb(25 25 29 / 0.06);
+  --shadow-float: 0 8px 24px rgb(25 25 29 / 0.12);
+
+  /* Primary gradient — coral → orange, ~105deg */
+  --gradient-primary: linear-gradient(105deg, #ff5a52 0%, #ff9b2f 100%);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  /* Tabular figures for KPIs / prices / countdowns */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+  /* Respect reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@utility gradient-primary {
+  background-image: var(--gradient-primary);
+}
+
+/* Controlled liquid-glass — with readable fallback when blur unavailable */
+@utility glass {
+  background-color: rgb(255 255 255 / 0.82);
+  border: 1px solid rgb(255 255 255 / 0.6);
+  box-shadow: var(--shadow-card);
+}
+@supports (backdrop-filter: blur(1px)) {
+  .glass {
+    background-color: rgb(255 253 252 / 0.62);
+    backdrop-filter: blur(16px) saturate(1.2);
+  }
+}
+
+/* Minimum 44px touch targets */
+@utility tap {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Skeleton shimmer that matches final geometry (no layout shift) */
+@keyframes wm-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--color-surface-2) 25%, #f2e9e4 37%, var(--color-surface-2) 63%);
+  background-size: 400% 100%;
+  animation: wm-shimmer 1.4s ease infinite;
+}
+
+/* Hide scrollbars on horizontal rails while keeping scroll */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
