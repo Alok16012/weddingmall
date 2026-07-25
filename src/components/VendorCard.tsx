@@ -14,13 +14,19 @@ function capacityLabel(l: Listing): string | null {
 }
 
 /** Full results card — matches the Explore "Wedding Venues" reference design. */
-export function VendorCard({ listing }: { listing: Listing }) {
+export function VendorCard({ listing, index }: { listing: Listing; index?: number }) {
   const { isFavourite, toggle } = useFavourites()
   const fav = isFavourite(listing.id)
   const cap = capacityLabel(listing)
 
   return (
-    <article className="overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]">
+    <article
+      style={index !== undefined ? ({ '--i': index } as React.CSSProperties) : undefined}
+      className={cn(
+        'card-interactive overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]',
+        index !== undefined && 'reveal',
+      )}
+    >
       <Link to={`/listing/${listing.id}`} className="relative block">
         <img
           src={listing.coverImage.url}

@@ -10,6 +10,7 @@ import { Stars } from '@/components/ui/Stars'
 import { Badge } from '@/components/ui/Badge'
 import { buttonClasses } from '@/components/ui/Button'
 import { VendorCardSkeleton } from '@/components/ui/states'
+import { TrustStrip, WhyWeddingMall } from '@/components/Trust'
 import { useFavourites } from '@/hooks/useFavourites'
 
 const heroImg =
@@ -95,15 +96,19 @@ export default function Home() {
           Search venues, vendors, packages
         </Link>
 
+        {/* Trust signals */}
+        <TrustStrip />
+
         {/* Categories */}
         <section>
           <SectionHeader title="Explore Categories" to="/explore" />
           <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pt-3">
-            {(Object.keys(CATEGORY_LABELS) as VendorCategory[]).map((cat) => (
+            {(Object.keys(CATEGORY_LABELS) as VendorCategory[]).map((cat, i) => (
               <Link
                 key={cat}
                 to={`/explore?category=${cat}`}
-                className="w-24 shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]"
+                style={{ '--i': i } as React.CSSProperties}
+                className="reveal card-interactive w-24 shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]"
               >
                 <img src={categoryImg[cat]} alt="" className="h-20 w-full object-cover" />
                 <div className="px-2 py-2 text-center text-sm font-semibold text-ink">
@@ -152,8 +157,12 @@ export default function Home() {
                   <VendorCardSkeleton />
                 </div>
               ))}
-            {nearby.map((l) => (
-              <div key={l.id} className="w-64 shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]">
+            {nearby.map((l, i) => (
+              <div
+                key={l.id}
+                style={{ '--i': i } as React.CSSProperties}
+                className="reveal card-interactive w-64 shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]"
+              >
                 <Link to={`/listing/${l.id}`} className="relative block">
                   <img src={l.coverImage.url} alt={l.coverImage.alt} loading="lazy" className="h-40 w-full object-cover" />
                   <button
@@ -185,6 +194,11 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        {/* Trust / safety */}
+        <div className="pb-4">
+          <WhyWeddingMall />
+        </div>
       </div>
     </div>
   )

@@ -165,7 +165,7 @@ export default function Explore() {
             }
           />
         )}
-        {!isLoading && !isError && data?.map((l) => <VendorCard key={l.id} listing={l} />)}
+        {!isLoading && !isError && data?.map((l, i) => <VendorCard key={l.id} listing={l} index={i} />)}
       </div>
     </div>
   )

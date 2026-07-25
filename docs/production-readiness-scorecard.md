@@ -3,7 +3,14 @@
 Living scorecard per spec §21. Status: `Not started` · `In progress` · `Blocked by owner` · `Verified` · `N/A (reason)`.
 Evidence = an artifact, test, config inspection, or reproducible command — never prose alone.
 
-**Milestone: Phase 1 — Foundation (baseline).** Last verified: 2026-07-25.
+**Milestone: Phase 1 — Foundation + design-polish pass.** Last verified: 2026-07-25.
+
+Design polish (skill-driven via `ui-ux-pro-max`, referencing `weddingmall.online`):
+trust signals added (stats strip + "Why WeddingMall" verified/pricing/support section),
+staggered reveal-on-mount + card hover-lift/press micro-interactions (150–420ms,
+reduced-motion gated), global cursor affordance. Marketplace pattern's Trust/Safety
+section now present. **Dark mode: explicitly out of scope (H-09)** — brand is a warm
+light system matching the supplied mockups; revisit if a dark variant is requested.
 
 ## Weighted product score (spec §14) — baseline
 
