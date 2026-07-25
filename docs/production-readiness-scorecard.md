@@ -3,7 +3,16 @@
 Living scorecard per spec §21. Status: `Not started` · `In progress` · `Blocked by owner` · `Verified` · `N/A (reason)`.
 Evidence = an artifact, test, config inspection, or reproducible command — never prose alone.
 
-**Milestone: Phase 1 — Foundation + design-polish pass.** Last verified: 2026-07-25.
+**Milestone: Phase 1 + design polish + Phase 2 (backend wiring & OTP auth).** Last verified: 2026-07-25.
+
+Phase 2 delivered: Supabase repository adapters (public reads via publishable key +
+authed writes, RLS-scoped), real **phone OTP auth** (splash/session-restore, onboarding
++ role, phone entry with 10-digit Indian validation, 6-digit verify, resend timer),
+**guest browsing** with `RequireAuth` guards on protected actions, and a one-paste
+`supabase/setup.sql` (schema + RLS + seed). **Verified:** OTP flow makes a live
+Supabase Auth call and handles the provider-not-configured response gracefully.
+**Owner blockers to go fully live:** (1) run `supabase/setup.sql` in the SQL editor;
+(2) configure an SMS provider (Twilio/MSG91) for real OTP delivery.
 
 Design polish (skill-driven via `ui-ux-pro-max`, referencing `weddingmall.online`):
 trust signals added (stats strip + "Why WeddingMall" verified/pricing/support section),

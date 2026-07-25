@@ -27,6 +27,7 @@ alter table bookings        enable row level security;
 alter table reviews         enable row level security;
 alter table device_tokens   enable row level security;
 alter table remote_config   enable row level security;
+alter table products        enable row level security;
 
 -- ---- profiles: self read/update ----
 create policy profiles_self_select on profiles for select using (id = auth.uid());
@@ -115,6 +116,12 @@ create policy device_tokens_own on device_tokens for all using (user_id = auth.u
 
 -- ---- remote_config: public safe read ----
 create policy remote_config_read on remote_config for select using (true);
+
+-- ---- products: active public read; vendor team manages own ----
+create policy products_public_read on products for select using (active or (vendor_id is not null and is_vendor_member(vendor_id)));
+create policy products_member_write on products for all
+  using (vendor_id is not null and is_vendor_member(vendor_id))
+  with check (vendor_id is not null and is_vendor_member(vendor_id));
 
 -- NOTE: with RLS enabled and no admin/service policy defined here, privileged
 -- writes (approvals, moderation, financial status) must go through Edge Functions

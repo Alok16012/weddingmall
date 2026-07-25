@@ -236,6 +236,31 @@ create table if not exists remote_config (
   updated_at timestamptz not null default now()
 );
 
+-- Physical goods — the "Wedding Products" side of the marketplace.
+do $$ begin
+  create type product_category as enum ('invitations','wedding_wear','jewellery','gifting','cakes','favours');
+exception when duplicate_object then null; end $$;
+
+create table if not exists products (
+  id uuid primary key default gen_random_uuid(),
+  vendor_id uuid references vendors(id) on delete set null,
+  category product_category not null,
+  name text not null,
+  seller text not null,
+  city text not null,
+  price_minor integer not null,
+  currency text not null default 'INR',
+  price_unit text,
+  rating numeric(2,1) not null default 0,
+  review_count integer not null default 0,
+  image_url text not null,
+  image_alt text not null default '',
+  description text not null default '',
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+create index if not exists products_category_idx on products (category) where active;
+
 -- ---------------------------------------------------------------------------
 -- updated_at trigger
 -- ---------------------------------------------------------------------------
