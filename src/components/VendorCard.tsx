@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { BadgeCheck, Car, Heart, MapPin, Users } from 'lucide-react'
+import { BadgeCheck, Car, Heart, Images, MapPin, Users } from 'lucide-react'
 import type { Listing } from '@/types/domain'
 import { cn } from '@/lib/cn'
 import { formatINR } from '@/lib/format'
@@ -40,9 +40,11 @@ export function VendorCard({ listing, index }: { listing: Listing; index?: numbe
             VERIFIED
           </span>
         )}
-        <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-ink/70 px-2 py-1 text-[11px] font-semibold text-white">
-          {listing.gallery.length}+
-        </span>
+        {listing.gallery.length + 1 > 1 && (
+          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-ink/70 px-2 py-1 text-[11px] font-semibold text-white">
+            <Images className="h-3.5 w-3.5" aria-hidden /> {listing.gallery.length + 1}
+          </span>
+        )}
         <button
           type="button"
           onClick={(e) => {

@@ -11,8 +11,17 @@ authed writes, RLS-scoped), real **phone OTP auth** (splash/session-restore, onb
 **guest browsing** with `RequireAuth` guards on protected actions, and a one-paste
 `supabase/setup.sql` (schema + RLS + seed). **Verified:** OTP flow makes a live
 Supabase Auth call and handles the provider-not-configured response gracefully.
-**Owner blockers to go fully live:** (1) run `supabase/setup.sql` in the SQL editor;
-(2) configure an SMS provider (Twilio/MSG91) for real OTP delivery.
+**Owner blockers to go fully live:** (1) ~~run `supabase/setup.sql`~~ ✅ **done — schema
+applied & seeded**; (2) configure an SMS provider (Twilio/MSG91) for real OTP delivery.
+
+**VERIFIED LIVE against the real Supabase project (2026-07-25):**
+- Public read path works via the publishable/anon key + RLS — Explore shows all 7
+  seeded vendors; detail shows media, packages, vendor rating and Haversine distance.
+- A title changed directly in the DB was reflected in the app on reload (proves live reads,
+  not fixtures).
+- **RLS negative test passed live**: the anon key reading `enquiries` returns 0 rows
+  (SEC-03 — unauthenticated cannot read participant data), while `listings`/`products`
+  (public projections) return rows.
 
 Design polish (skill-driven via `ui-ux-pro-max`, referencing `weddingmall.online`):
 trust signals added (stats strip + "Why WeddingMall" verified/pricing/support section),
