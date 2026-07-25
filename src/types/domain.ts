@@ -100,6 +100,7 @@ export interface Listing {
   capacityMax?: number
   status: ListingStatus
   description: string
+  packages?: Package[]
 }
 
 export type EnquiryStage =

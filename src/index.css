@@ -12,8 +12,8 @@
   --color-saffron: #ff9b2f; /* Secondary */
   --color-saffron-100: #ffedd6;
   --color-ink: #19191d; /* High-contrast near-black */
-  --color-ink-soft: #4a4a52;
-  --color-muted: #6b6b73;
+  --color-ink-soft: #46464e;
+  --color-muted: #63636b; /* AA-safe (>=4.5:1) on canvas */
   --color-canvas: #fffdfc; /* Warm white — never flat clinical white */
   --color-surface: #ffffff;
   --color-surface-2: #fbf6f3;
@@ -50,18 +50,34 @@
     background: var(--color-canvas);
     color: var(--color-ink);
     font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+    letter-spacing: -0.006em; /* Geist reads cleaner very slightly tightened */
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+  }
+  /* Long-form copy: avoid orphans/ragged breaks */
+  p {
+    text-wrap: pretty;
   }
   /* Tabular figures for KPIs / prices / countdowns */
   .tnum {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum';
+    letter-spacing: 0;
   }
+  /* Display face — Fraunces, optical-sized, balanced multi-line headings */
   h1, h2, h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
-    line-height: 1.1;
+    font-optical-sizing: auto;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  h3 {
+    line-height: 1.2;
+    letter-spacing: -0.01em; /* smaller display sizes need less negative tracking */
   }
   /* Respect reduced-motion */
   @media (prefers-reduced-motion: reduce) {
@@ -139,9 +155,10 @@
   }
 }
 
-/* Card micro-interaction: lift on hover (web), settle on press — no layout shift */
+/* Card micro-interaction: lift on hover (web), settle on press — no layout shift.
+   Custom curve (not default ease); reserved for genuine product/vendor cards. */
 @utility card-interactive {
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @media (prefers-reduced-motion: no-preference) and (hover: hover) {
   .card-interactive:hover {
@@ -151,4 +168,28 @@
 }
 .card-interactive:active {
   transform: translateY(0) scale(0.995);
+}
+
+/*
+ * Modal / lightbox enter — backdrop fades, content scales up from 0.96 (Emil:
+ * never from 0). Reduced-motion users get the final state instantly.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes wm-backdrop-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes wm-pop-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: none; }
+  }
+  .anim-backdrop-in { animation: wm-backdrop-in 0.2s ease-out both; }
+  .anim-pop-in { animation: wm-pop-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+  /* Panel expand from its top edge (origin-aware, fast) — for filter/settings reveals */
+  @keyframes wm-panel-in {
+    from { opacity: 0; transform: translateY(-6px) scaleY(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+  .anim-panel-in { transform-origin: top; animation: wm-panel-in 0.16s ease-out both; }
 }

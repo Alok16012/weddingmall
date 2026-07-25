@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { BadgeCheck, Check, Heart, MapPin, MessageCircle, Phone } from 'lucide-react'
+import { BadgeCheck, Check, Heart, Images, MapPin, MessageCircle, Phone } from 'lucide-react'
 import { repositories } from '@/repositories'
 import { formatINR, formatDistanceKm, relativeTime } from '@/lib/format'
 import { Stars } from '@/components/ui/Stars'
@@ -8,11 +9,13 @@ import { Badge } from '@/components/ui/Badge'
 import { buttonClasses } from '@/components/ui/Button'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { ScreenHeader } from '@/components/layout/ScreenHeader'
+import { GalleryLightbox } from '@/components/GalleryLightbox'
 import { useFavourites } from '@/hooks/useFavourites'
 
 export default function ListingDetail() {
   const { id = '' } = useParams()
   const { isFavourite, toggle } = useFavourites()
+  const [galleryAt, setGalleryAt] = useState<number | null>(null)
 
   const { data: listing, isLoading, isError, refetch } = useQuery({
     queryKey: ['listing', id],
@@ -46,9 +49,18 @@ export default function ListingDetail() {
   }
 
   const fav = isFavourite(listing.id)
+  const allMedia = [listing.coverImage, ...listing.gallery]
 
   return (
     <div className="pb-28">
+      {galleryAt !== null && (
+        <GalleryLightbox
+          media={allMedia}
+          startIndex={galleryAt}
+          title={listing.title}
+          onClose={() => setGalleryAt(null)}
+        />
+      )}
       <ScreenHeader
         title=""
         back
@@ -65,15 +77,29 @@ export default function ListingDetail() {
       />
 
       {/* Gallery */}
-      <div className="no-scrollbar flex snap-x snap-mandatory gap-2 overflow-x-auto px-4">
-        {[listing.coverImage, ...listing.gallery].map((m) => (
-          <img
-            key={m.id}
-            src={m.url}
-            alt={m.alt}
-            className="h-60 w-[85%] shrink-0 snap-center rounded-[var(--radius-card)] object-cover"
-          />
-        ))}
+      <div className="relative">
+        <div className="no-scrollbar flex snap-x snap-mandatory gap-2 overflow-x-auto px-4">
+          {allMedia.map((m, i) => (
+            <button
+              key={m.id}
+              onClick={() => setGalleryAt(i)}
+              className="shrink-0 snap-center"
+              aria-label={`Open photo ${i + 1} of ${allMedia.length}`}
+            >
+              <img
+                src={m.url}
+                alt={m.alt}
+                className="h-60 w-[78vw] max-w-[340px] rounded-[var(--radius-card)] object-cover"
+              />
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => setGalleryAt(0)}
+          className="absolute bottom-3 right-6 inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] bg-ink/80 px-3 py-1.5 text-xs font-semibold text-white"
+        >
+          <Images className="h-3.5 w-3.5" aria-hidden /> {allMedia.length} photos
+        </button>
       </div>
 
       <div className="space-y-6 px-4 pt-5">
@@ -108,6 +134,39 @@ export default function ListingDetail() {
             )}
           </p>
         </div>
+
+        {/* Packages */}
+        {listing.packages && listing.packages.length > 0 && (
+          <section>
+            <h2 className="mb-2 text-lg font-semibold text-ink">Packages</h2>
+            <div className="space-y-3">
+              {listing.packages.map((p) => (
+                <div key={p.id} className="rounded-[var(--radius-card)] border border-line bg-surface p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="font-semibold text-ink">{p.name}</h3>
+                    <span className="tnum whitespace-nowrap font-semibold text-coral">
+                      {formatINR(p.price.minorUnits)}
+                      {p.price.unit && <span className="ml-1 text-xs font-normal text-muted">{p.price.unit}</span>}
+                    </span>
+                  </div>
+                  <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                    {p.inclusions.map((inc) => (
+                      <li key={inc} className="flex items-center gap-1.5 text-sm text-ink-soft">
+                        <Check className="h-3.5 w-3.5 text-success" aria-hidden /> {inc}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    to={`/enquiry/${listing.id}`}
+                    className={buttonClasses({ size: 'sm', variant: 'outline', fullWidth: true, className: 'mt-3 text-coral' })}
+                  >
+                    Enquire about this package
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Amenities */}
         <section>

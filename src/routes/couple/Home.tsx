@@ -103,12 +103,11 @@ export default function Home() {
         <section>
           <SectionHeader title="Explore Categories" to="/explore" />
           <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pt-3">
-            {(Object.keys(CATEGORY_LABELS) as VendorCategory[]).map((cat, i) => (
+            {(Object.keys(CATEGORY_LABELS) as VendorCategory[]).map((cat) => (
               <Link
                 key={cat}
                 to={`/explore?category=${cat}`}
-                style={{ '--i': i } as React.CSSProperties}
-                className="reveal card-interactive w-24 shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]"
+                className="w-24 shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)] transition-transform active:scale-[0.97]"
               >
                 <img src={categoryImg[cat]} alt="" className="h-20 w-full object-cover" />
                 <div className="px-2 py-2 text-center text-sm font-semibold text-ink">
@@ -157,11 +156,10 @@ export default function Home() {
                   <VendorCardSkeleton />
                 </div>
               ))}
-            {nearby.map((l, i) => (
+            {nearby.map((l) => (
               <div
                 key={l.id}
-                style={{ '--i': i } as React.CSSProperties}
-                className="reveal card-interactive w-64 shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]"
+                className="card-interactive w-64 shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]"
               >
                 <Link to={`/listing/${l.id}`} className="relative block">
                   <img src={l.coverImage.url} alt={l.coverImage.alt} loading="lazy" className="h-40 w-full object-cover" />

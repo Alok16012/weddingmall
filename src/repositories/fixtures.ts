@@ -39,6 +39,24 @@ export const listings: Listing[] = [
     status: 'published',
     description:
       'A premier lawn-and-banquet venue in Patna with landscaped gardens, a 1,200-guest capacity and in-house catering. Ideal for grand weddings and receptions.',
+    packages: [
+      {
+        id: 'pkg_usha_silver',
+        name: 'Silver — Lawn only',
+        price: { minorUnits: 45000000, currency: 'INR', unit: 'per event' },
+        priceMode: 'fixed',
+        inclusions: ['Lawn for up to 600', 'Basic stage & lighting', 'Parking', 'Power backup'],
+        active: true,
+      },
+      {
+        id: 'pkg_usha_gold',
+        name: 'Gold — Lawn + Banquet',
+        price: { minorUnits: 65000000, currency: 'INR', unit: 'per event' },
+        priceMode: 'fixed',
+        inclusions: ['Lawn + AC banquet', 'Premium decor', 'In-house catering (veg)', 'Bridal room', 'DJ'],
+        active: true,
+      },
+    ],
   },
   {
     id: 'lst_reeti_rivaaj',
@@ -87,6 +105,24 @@ export const listings: Listing[] = [
     status: 'published',
     description:
       'Signature HD and airbrush bridal makeup with a complimentary trial. Rhea travels to your venue with a full team on the wedding day.',
+    packages: [
+      {
+        id: 'pkg_rhea_bridal',
+        name: 'Bridal HD + Trial',
+        price: { minorUnits: 2800000, currency: 'INR', unit: 'per booking' },
+        priceMode: 'fixed',
+        inclusions: ['HD/airbrush bridal look', 'One trial session', 'Draping', 'False lashes'],
+        active: true,
+      },
+      {
+        id: 'pkg_rhea_family',
+        name: 'Family add-on',
+        price: { minorUnits: 600000, currency: 'INR', unit: 'per person' },
+        priceMode: 'fixed',
+        inclusions: ['Party makeup', 'Draping', 'Hairstyling'],
+        active: true,
+      },
+    ],
   },
   {
     id: 'lst_frames_photo',

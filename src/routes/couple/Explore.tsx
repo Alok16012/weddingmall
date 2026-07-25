@@ -105,7 +105,7 @@ export default function Explore() {
         </div>
 
         {showFilters && (
-          <div className="mt-3 rounded-[var(--radius-card)] border border-line bg-surface p-3">
+          <div className="anim-panel-in mt-3 rounded-[var(--radius-card)] border border-line bg-surface p-3">
             <p className="mb-2 text-sm font-semibold text-ink">Category</p>
             <div className="flex flex-wrap gap-2">
               <FilterPill active={!category} onClick={() => setCategory(undefined)}>All</FilterPill>
