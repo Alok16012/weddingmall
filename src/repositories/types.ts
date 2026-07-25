@@ -5,6 +5,8 @@ import type {
   Listing,
   Message,
   PlannerMilestone,
+  ProductCategory,
+  ProductItem,
   Review,
   VendorCategory,
 } from '@/types/domain'
@@ -67,11 +69,19 @@ export interface VendorDashboardStats {
   responseRatePct: number
   medianResponseMins: number
   upcomingBookings: number
+  /** Profile views for the last 7 days (oldest → newest). */
+  weeklyViews: number[]
+  /** SLA target for first response, in minutes. */
+  responseTargetMins: number
 }
 
 export interface VendorRepository {
   stats(): Promise<VendorDashboardStats>
   listings(): Promise<Listing[]>
+}
+
+export interface ProductRepository {
+  list(category?: ProductCategory): Promise<ProductItem[]>
 }
 
 export interface Repositories {
@@ -82,4 +92,5 @@ export interface Repositories {
   chat: ChatRepository
   planner: PlannerRepository
   vendor: VendorRepository
+  products: ProductRepository
 }

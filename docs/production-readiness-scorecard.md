@@ -24,7 +24,7 @@ light system matching the supplied mockups; revisit if a dark variant is request
 | Security/privacy | 12 | 6 | Publishable-key-only client + boot guard; RLS positive/negative policies authored; secret-key rotation pending |
 | Performance/reliability | 8 | 5 | Lazy images, skeletons, no layout shift; bundle 136 KB gzip; no measured device profile yet |
 | Accessibility | 5 | 3 | 44px targets, aria labels, focus rings, reduced-motion, sr-only; no full audit yet |
-| Testing/QA | 7 | 3 | 10 unit tests green (format + repository filtering/favourites/enquiry); no E2E yet |
+| Testing/QA | 7 | 3 | 12 unit tests green (format + repository filtering/favourites/enquiry/products); no E2E yet |
 | Release readiness | 3 | 1 | Capacitor deps installed; no android project/signing yet |
 | **Total** | **100** | **≈53** | Rating ≈5/10 — *functional foundation, not production-ready* (honest baseline) |
 

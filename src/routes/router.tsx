@@ -6,6 +6,7 @@ import Favourites from './couple/Favourites'
 import Bookings from './couple/Bookings'
 import Profile from './couple/Profile'
 import ListingDetail from './couple/ListingDetail'
+import Products from './couple/Products'
 import EnquiryComposer from './couple/EnquiryComposer'
 import Planner from './couple/Planner'
 import Privacy from './couple/Privacy'
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
     element: <PlainShell />,
     children: [
       { path: '/listing/:id', element: <ListingDetail /> },
+      { path: '/products', element: <Products /> },
       { path: '/enquiry/:listingId', element: <EnquiryComposer /> },
       { path: '/planner', element: <Planner /> },
       { path: '/privacy', element: <Privacy /> },

@@ -38,6 +38,18 @@ describe('favourites repository (FAV-01)', () => {
   })
 })
 
+describe('product repository', () => {
+  it('returns all products by default', async () => {
+    const all = await fixtureRepositories.products.list()
+    expect(all.length).toBeGreaterThan(0)
+  })
+  it('filters by product category', async () => {
+    const rows = await fixtureRepositories.products.list('jewellery')
+    expect(rows.length).toBeGreaterThan(0)
+    expect(rows.every((p) => p.category === 'jewellery')).toBe(true)
+  })
+})
+
 describe('enquiry repository (ENQ-01)', () => {
   it('creates an enquiry routed to a conversation-ready state', async () => {
     const created = await fixtureRepositories.enquiries.create({

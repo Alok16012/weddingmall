@@ -23,6 +23,37 @@ export const CATEGORY_LABELS: Record<VendorCategory, string> = {
   mehendi: 'Mehendi',
 }
 
+/** Physical goods (vs. services) — the "Wedding Products" side of the marketplace. */
+export type ProductCategory =
+  | 'invitations'
+  | 'wedding_wear'
+  | 'jewellery'
+  | 'gifting'
+  | 'cakes'
+  | 'favours'
+
+export const PRODUCT_LABELS: Record<ProductCategory, string> = {
+  invitations: 'Invitations',
+  wedding_wear: 'Wedding Wear',
+  jewellery: 'Jewellery',
+  gifting: 'Gifting',
+  cakes: 'Cakes',
+  favours: 'Favours',
+}
+
+export interface ProductItem {
+  id: string
+  category: ProductCategory
+  name: string
+  seller: string
+  city: string
+  price: Money
+  rating: number
+  reviewCount: number
+  image: MediaItem
+  description: string
+}
+
 export type ApprovalStatus =
   | 'draft'
   | 'submitted'

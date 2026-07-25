@@ -1,4 +1,4 @@
-import type { Enquiry, PlannerMilestone } from '@/types/domain'
+import type { Enquiry, PlannerMilestone, ProductCategory } from '@/types/domain'
 import * as fx from './fixtures'
 import type {
   BookingRepository,
@@ -8,6 +8,7 @@ import type {
   ListingQuery,
   ListingRepository,
   PlannerRepository,
+  ProductRepository,
   Repositories,
   VendorRepository,
 } from './types'
@@ -169,11 +170,20 @@ const vendorRepo: VendorRepository = {
       responseRatePct: 92,
       medianResponseMins: 8,
       upcomingBookings: 3,
+      weeklyViews: [42, 55, 38, 61, 74, 68, 90],
+      responseTargetMins: 10,
     }
   },
   async listings() {
     await delay()
     return fx.listings.filter((l) => l.vendorId === 'ven_usha')
+  },
+}
+
+const productRepo: ProductRepository = {
+  async list(category?: ProductCategory) {
+    await delay()
+    return category ? fx.products.filter((p) => p.category === category) : fx.products
   },
 }
 
@@ -185,4 +195,5 @@ export const fixtureRepositories: Repositories = {
   chat: chatRepo,
   planner: plannerRepo,
   vendor: vendorRepo,
+  products: productRepo,
 }

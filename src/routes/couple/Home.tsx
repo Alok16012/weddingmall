@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Bell, ChevronDown, ChevronRight, Crown, Heart, MapPin, Search } from 'lucide-react'
-import { CATEGORY_LABELS, type VendorCategory } from '@/types/domain'
+import { CATEGORY_LABELS, PRODUCT_LABELS, type ProductCategory, type VendorCategory } from '@/types/domain'
 import { repositories } from '@/repositories'
 import { useSession } from '@/auth/SessionContext'
 import { formatINR } from '@/lib/format'
@@ -23,6 +23,15 @@ const categoryImg: Record<VendorCategory, string> = {
   catering: 'https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=300&q=80',
   decor: 'https://images.unsplash.com/photo-1509610973147-232dfea52a97?auto=format&fit=crop&w=300&q=80',
   mehendi: 'https://images.unsplash.com/photo-1610173827043-9db50e0d8ef9?auto=format&fit=crop&w=300&q=80',
+}
+
+const productImg: Record<ProductCategory, string> = {
+  invitations: 'https://images.unsplash.com/photo-1607344645866-009c320b63e0?auto=format&fit=crop&w=300&q=80',
+  wedding_wear: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=300&q=80',
+  jewellery: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=300&q=80',
+  gifting: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=300&q=80',
+  cakes: 'https://images.unsplash.com/photo-1535141192574-5d4897c12636?auto=format&fit=crop&w=300&q=80',
+  favours: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=300&q=80',
 }
 
 export default function Home() {
@@ -112,6 +121,25 @@ export default function Home() {
                 <img src={categoryImg[cat]} alt="" className="h-20 w-full object-cover" />
                 <div className="px-2 py-2 text-center text-sm font-semibold text-ink">
                   {CATEGORY_LABELS[cat]}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* Wedding products */}
+        <section>
+          <SectionHeader title="Shop Wedding Products" to="/products" />
+          <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pt-3">
+            {(Object.keys(PRODUCT_LABELS) as ProductCategory[]).map((cat) => (
+              <Link
+                key={cat}
+                to={`/products?category=${cat}`}
+                className="w-24 shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)] transition-transform active:scale-[0.97]"
+              >
+                <img src={productImg[cat]} alt="" className="h-20 w-full object-cover" />
+                <div className="px-2 py-2 text-center text-sm font-semibold text-ink">
+                  {PRODUCT_LABELS[cat]}
                 </div>
               </Link>
             ))}
