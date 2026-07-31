@@ -1,218 +1,187 @@
 /**
- * Domain types — conceptual data contracts from spec §9.
- * These mirror the intended Supabase schema. The repository layer maps rows
- * to these types so UI never depends on raw table shapes.
+ * Domain types — mirror the REAL Supabase schema of the WeddingMall production
+ * project (lwkrpweahafcaxcmseys), the same backend as https://weddingmall.online/.
+ *
+ * Verified tables: vendors, leads, locations, popular_cities, blogs, jobs.
+ * Nothing here is invented — every field maps to a real column.
  */
 
-export type Role = 'couple' | 'vendor'
+/* ------------------------------------------------------------------ vendors */
 
-export type VendorCategory =
-  | 'venue'
-  | 'makeup'
-  | 'photography'
-  | 'catering'
-  | 'decor'
-  | 'mehendi'
+/** `vendors.status` — observed values: active (186), pending (15), inactive (1). */
+export type VendorStatus = 'active' | 'pending' | 'inactive'
 
-export const CATEGORY_LABELS: Record<VendorCategory, string> = {
-  venue: 'Venues',
-  makeup: 'Makeup',
-  photography: 'Photography',
-  catering: 'Catering',
-  decor: 'Decor',
-  mehendi: 'Mehendi',
+/** `vendors.badge` — merchandising label set by the website admin. */
+export type VendorBadge = 'Most Preferred' | 'Preferred' | 'Budget Venue' | 'Promotional' | ''
+
+/**
+ * `vendors.amenities` (jsonb). All keys optional — real rows omit some.
+ * Numeric-ish fields are stored as strings by the website ("4", "250-1000").
+ */
+export interface VendorAmenities {
+  wifi?: boolean
+  garden?: boolean
+  bridalRoom?: boolean
+  diningArea?: boolean
+  parkingArea?: boolean
+  swimmingPool?: boolean
+  electricityBackup?: boolean
+  noOfHalls?: string
+  noOfLawns?: string
+  noOfRooms?: string
+  noOfACRooms?: string
+  parkingCapacity?: string
+  seatingCapacity?: string
 }
 
-/** Physical goods (vs. services) — the "Wedding Products" side of the marketplace. */
-export type ProductCategory =
-  | 'invitations'
-  | 'wedding_wear'
-  | 'jewellery'
-  | 'gifting'
-  | 'cakes'
-  | 'favours'
-
-export const PRODUCT_LABELS: Record<ProductCategory, string> = {
-  invitations: 'Invitations',
-  wedding_wear: 'Wedding Wear',
-  jewellery: 'Jewellery',
-  gifting: 'Gifting',
-  cakes: 'Cakes',
-  favours: 'Favours',
+/** `vendors.payment_policies` (jsonb). */
+export interface VendorPaymentPolicies {
+  gstIncluded?: boolean
+  paymentModes?: string
+  advancePayment?: string
+  additionalCharges?: string
+  cancellationPolicy?: string
 }
 
-export interface ProductItem {
-  id: string
-  category: ProductCategory
-  name: string
-  seller: string
-  city: string
-  price: Money
-  rating: number
-  reviewCount: number
-  image: MediaItem
-  description: string
-}
-
-export type ApprovalStatus =
-  | 'draft'
-  | 'submitted'
-  | 'pending'
-  | 'approved'
-  | 'rejected'
-
-export type ListingStatus = 'draft' | 'published' | 'paused'
-
-export type PriceMode = 'fixed' | 'on_request'
-
-export interface Money {
-  /** Integer minor units (paise). */
-  minorUnits: number
-  currency: 'INR'
-  /** e.g. "per plate", "per event", "per day". */
-  unit?: string
-}
-
-export interface Profile {
-  id: string
-  role: Role
-  displayName: string
-  phone?: string
-  city?: string
-  avatarUrl?: string
-  weddingDate?: string
-}
-
+/**
+ * A row of `vendors` — this table is BOTH the vendor and the listing.
+ * There is no separate listings table in this backend.
+ */
 export interface Vendor {
   id: string
   name: string
-  category: VendorCategory
-  verified: boolean
-  approval: ApprovalStatus
-  city: string
-  rating: number
-  reviewCount: number
+  email: string
+  /** `category` text[] of slugs, e.g. ["wedding-venues","banquet-halls"]. */
+  category: string[]
+  /** Free-text city, e.g. "Patna". Matches `locations.city`. */
+  location: string | null
+  /** Legacy/unused on most rows — prefer vegPrice/nonVegPrice. */
+  price: string | null
+  priceUnit: string | null
+  vegPrice: string | null
+  nonVegPrice: string | null
+  description: string | null
+  /** Full public URLs in the `vendor-images` storage bucket. */
+  images: string[]
+  /** Cover image (usually images[0]). */
+  image: string | null
+  rating: number | null
+  status: VendorStatus
+  badge: VendorBadge
+  isTrending: boolean
+  amenities: VendorAmenities
+  paymentPolicies: VendorPaymentPolicies
+  createdAt: string
 }
 
-export interface MediaItem {
+/* -------------------------------------------------------------------- leads */
+
+/** `leads.status` — free text on the website; treated as an open set. */
+export type LeadStatus = string
+
+/** A row of `leads` — the enquiry mechanism shared with the website. */
+export interface Lead {
   id: string
-  url: string
-  alt: string
-  order: number
+  vendorId: string
+  vendorName: string | null
+  customerName: string
+  customerPhone: string
+  weddingDate: string | null
+  type: string | null
+  status: LeadStatus | null
+  createdAt: string
 }
 
-export interface Package {
+/** Payload for creating a lead (enquiry) — mirrors the website's insert. */
+export interface NewLead {
+  vendorId: string
+  vendorName?: string
+  customerName: string
+  customerPhone: string
+  weddingDate?: string
+  type?: string
+}
+
+/* ------------------------------------------------- locations / cities / cms */
+
+export interface LocationRow {
+  id: string
+  state: string
+  city: string
+}
+
+export interface PopularCity {
   id: string
   name: string
-  price: Money
-  priceMode: PriceMode
-  inclusions: string[]
-  active: boolean
 }
 
-export interface Listing {
-  id: string
-  vendorId: string
-  vendorName: string
-  category: VendorCategory
-  title: string
-  city: string
-  /** Distance from the user in km, derived from server coordinates. */
-  distanceKm: number
-  rating: number
-  reviewCount: number
-  verified: boolean
-  priceMode: PriceMode
-  fromPrice?: Money
-  coverImage: MediaItem
-  gallery: MediaItem[]
-  amenities: string[]
-  capacityMin?: number
-  capacityMax?: number
-  status: ListingStatus
-  description: string
-  packages?: Package[]
-}
-
-export type EnquiryStage =
-  | 'new'
-  | 'contacted'
-  | 'quoted'
-  | 'visit_scheduled'
-  | 'won'
-  | 'lost'
-
-export interface Enquiry {
-  id: string
-  listingId: string
-  listingTitle: string
-  vendorId: string
-  vendorName: string
-  coupleName: string
-  eventDate?: string
-  guests?: number
-  budget?: Money
-  message: string
-  stage: EnquiryStage
-  createdAt: string
-  slaDueAt?: string
-}
-
-export type BookingStatus =
-  | 'requested'
-  | 'confirmed'
-  | 'declined'
-  | 'completed'
-  | 'cancelled'
-
-export interface Booking {
-  id: string
-  listingId: string
-  listingTitle: string
-  vendorName: string
-  eventDate: string
-  guests: number
-  packageSnapshot: { name: string; price: Money }
-  status: BookingStatus
-  createdAt: string
-}
-
-export type MessageState = 'pending' | 'sent' | 'delivered' | 'read' | 'failed'
-
-export interface Message {
-  id: string
-  conversationId: string
-  senderId: string
-  body: string
-  attachmentUrl?: string
-  attachmentType?: 'image' | 'pdf'
-  state: MessageState
-  createdAt: string
-}
-
-export interface Conversation {
-  id: string
-  listingId: string
-  vendorName: string
-  coupleName: string
-  lastMessage: string
-  lastAt: string
-  unread: number
-}
-
-export interface PlannerMilestone {
+export interface BlogPost {
   id: string
   title: string
-  done: boolean
-  order: number
-}
-
-export interface Review {
-  id: string
-  listingId: string
-  author: string
-  rating: number
-  body: string
-  verified: boolean
+  slug: string
+  category: string | null
+  image: string | null
+  excerpt: string | null
+  content: string | null
+  author: string | null
   createdAt: string
 }
+
+export interface JobPost {
+  id: string
+  title: string
+  type: string | null
+  locations: string[]
+  createdAt: string
+}
+
+/* --------------------------------------------------------------- categories */
+
+/**
+ * Category slugs actually present in `vendors.category`, with display labels.
+ * Counts (of 202 rows) are from the live audit and drive the Home ordering.
+ */
+export const CATEGORY_LABELS: Record<string, string> = {
+  'wedding-venues': 'Wedding Venues',
+  'banquet-halls': 'Banquet Halls',
+  'marriage-garden-lawns': 'Marriage Gardens & Lawns',
+  'small-function-halls': 'Small Function Halls',
+  'wedding-resorts': 'Wedding Resorts',
+  'destination-wedding': 'Destination Weddings',
+  'budget-halls': 'Budget Halls',
+  '3-star-hotels': '3-Star Hotels',
+  'makeup-artists': 'Makeup Artists',
+  'bridal-makeup': 'Bridal Makeup',
+  'family-makeup': 'Family Makeup',
+  photographers: 'Photographers',
+  'wedding-photographers': 'Wedding Photographers',
+  'pre-wedding-photographers': 'Pre-Wedding Shoots',
+  'mehendi-artists': 'Mehendi Artists',
+  'bridal-mehendi': 'Bridal Mehendi',
+  'family-mehendi': 'Family Mehendi',
+  'bridal-wear': 'Bridal Wear',
+  'family-wear': 'Family Wear',
+  'planning-decor': 'Planning & Decor',
+}
+
+/** Primary categories surfaced on Home (highest real vendor counts first). */
+export const HOME_CATEGORIES: string[] = [
+  'wedding-venues',
+  'banquet-halls',
+  'marriage-garden-lawns',
+  'wedding-resorts',
+  'makeup-artists',
+  'photographers',
+  'mehendi-artists',
+  'planning-decor',
+]
+
+export function categoryLabel(slug: string): string {
+  return (
+    CATEGORY_LABELS[slug] ??
+    slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  )
+}
+
+/** Role model: this backend has no profiles table — vendors authenticate by email. */
+export type Role = 'guest' | 'vendor'

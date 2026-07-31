@@ -7,7 +7,7 @@ import Splash from '@/routes/auth/Splash'
 
 function Root() {
   const { initializing } = useSession()
-  // Session-restore screen (supabase mode) before the router mounts (spec C-01).
+  // Session-restore screen before the router mounts.
   if (initializing) return <Splash />
   return <RouterProvider router={router} />
 }

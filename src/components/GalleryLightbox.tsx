@@ -1,16 +1,22 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Share2, X } from 'lucide-react'
-import type { MediaItem } from '@/types/domain'
 import { cn } from '@/lib/cn'
 
 /** Full-screen gallery viewer — counter, prev/next, thumbnails, share (spec C-09). */
+export interface GalleryMedia {
+  id: string
+  url: string
+  alt: string
+  order?: number
+}
+
 export function GalleryLightbox({
   media,
   startIndex = 0,
   title,
   onClose,
 }: {
-  media: MediaItem[]
+  media: GalleryMedia[]
   startIndex?: number
   title?: string
   onClose: () => void
@@ -97,7 +103,7 @@ export function GalleryLightbox({
               aria-current={i === index}
               className={cn(
                 'h-14 w-14 shrink-0 overflow-hidden rounded-[var(--radius-field)] ring-2 transition',
-                i === index ? 'ring-coral' : 'ring-transparent opacity-60',
+                i === index ? 'ring-[var(--color-primary)]' : 'ring-transparent opacity-60',
               )}
             >
               <img src={m.url} alt="" className="h-full w-full object-cover" />

@@ -12,7 +12,7 @@ export function Stars({
 }) {
   return (
     <span className={cn('inline-flex items-center gap-1 text-sm', className)}>
-      <Star className="h-4 w-4 fill-saffron text-saffron" aria-hidden />
+      <Star className="h-4 w-4 fill-[var(--color-accent)] text-[var(--color-accent)]" aria-hidden />
       <span className="tnum font-semibold text-ink">{rating.toFixed(1)}</span>
       {count !== undefined && <span className="text-muted">({count})</span>}
       <span className="sr-only">{`${rating.toFixed(1)} out of 5 stars${count ? `, ${count} reviews` : ''}`}</span>

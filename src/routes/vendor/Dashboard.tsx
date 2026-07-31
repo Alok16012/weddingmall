@@ -1,233 +1,164 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, Clock, Store, TrendingUp, Users, Zap } from 'lucide-react'
+import { ArrowRight, Images, LogOut, MessageSquare, Star, TrendingUp } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { repositories } from '@/repositories'
-import type { EnquiryStage } from '@/types/domain'
 import { useSession } from '@/auth/SessionContext'
-import { relativeTime } from '@/lib/format'
-import { cn } from '@/lib/cn'
+import { getMyVendor } from '@/services/vendors'
+import { listLeadsForVendor } from '@/services/leads'
+import { categoryLabel } from '@/types/domain'
 import { Badge } from '@/components/ui/Badge'
 import { Button, buttonClasses } from '@/components/ui/Button'
-import { Skeleton } from '@/components/ui/states'
+import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
+import { LeadRow } from '@/components/LeadRow'
 
-const PIPELINE: { stage: EnquiryStage; label: string }[] = [
-  { stage: 'new', label: 'New' },
-  { stage: 'contacted', label: 'Contacted' },
-  { stage: 'quoted', label: 'Quoted' },
-  { stage: 'visit_scheduled', label: 'Visit' },
-  { stage: 'won', label: 'Won' },
-]
-
+/**
+ * Vendor workspace. Every number here comes from real rows — the vendor's own
+ * `vendors` record and their `leads`. No invented analytics.
+ */
 export default function VendorDashboard() {
-  const { switchRole } = useSession()
-  const navigate = useNavigate()
+  const { email, isVendor, initializing, signOut } = useSession()
 
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['vendor', 'stats'],
-    queryFn: () => repositories.vendor.stats(),
+  const vendorQ = useQuery({
+    queryKey: ['my-vendor', email],
+    queryFn: () => getMyVendor(email!),
+    enabled: !!email,
   })
-  const { data: leads } = useQuery({
-    queryKey: ['vendor', 'leads'],
-    queryFn: () => repositories.enquiries.listForVendor(),
+  const vendor = vendorQ.data
+
+  const leadsQ = useQuery({
+    queryKey: ['my-leads', vendor?.id],
+    queryFn: () => listLeadsForVendor(vendor!.id),
+    enabled: !!vendor?.id,
   })
 
-  const freshLeads = (leads ?? []).filter((l) => l.stage === 'new')
-  const counts = (leads ?? []).reduce<Record<string, number>>((acc, l) => {
-    acc[l.stage] = (acc[l.stage] ?? 0) + 1
-    return acc
-  }, {})
-  const maxCount = Math.max(1, ...PIPELINE.map((p) => counts[p.stage] ?? 0))
+  if (initializing) return <div className="p-4"><Skeleton className="h-32 w-full" /></div>
+  if (!isVendor) return <Navigate to="/vendor/login" replace />
 
-  const onTarget =
-    stats && stats.medianResponseMins <= stats.responseTargetMins
+  const leads = leadsQ.data ?? []
+  const newLeads = leads.filter((l) => (l.status ?? 'new').toLowerCase() === 'new')
 
   return (
-    <div>
-      <header className="flex items-center justify-between px-4 py-4">
-        <div>
+    <div className="pb-4">
+      <header className="flex items-start justify-between gap-3 px-4 py-4">
+        <div className="min-w-0">
           <p className="text-sm text-muted">Vendor workspace</p>
-          <h1 className="text-2xl font-semibold text-ink">Usha Resort</h1>
+          <h1 className="truncate text-[1.6rem] text-ink">
+            {vendorQ.isLoading ? 'Loading…' : (vendor?.name ?? 'Your business')}
+          </h1>
         </div>
-        <Badge tone="success">Approved</Badge>
+        {vendor && (
+          <Badge tone={vendor.status === 'active' ? 'success' : 'saffron'}>{vendor.status}</Badge>
+        )}
       </header>
 
       <div className="space-y-5 px-4">
-        {/* SLA banner */}
-        {isLoading ? (
-          <Skeleton className="h-24 w-full" />
-        ) : (
-          <section
-            className={cn(
-              'rounded-[var(--radius-card)] p-4',
-              onTarget ? 'bg-success-100' : 'bg-saffron-100',
-            )}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Zap className={cn('h-5 w-5', onTarget ? 'text-success' : 'text-warning')} aria-hidden />
-                <h2 className="font-semibold text-ink">Response SLA</h2>
+        {vendorQ.isLoading && <Skeleton className="h-24 w-full" />}
+        {vendorQ.isError && <ErrorState onRetry={() => vendorQ.refetch()} />}
+
+        {/* No matching vendor row for this login */}
+        {!vendorQ.isLoading && !vendor && (
+          <EmptyState
+            title="No vendor profile linked"
+            description={`We couldn't find a vendor record for ${email}. Please contact WeddingMall support to link your account.`}
+            action={<Button variant="outline" size="sm" onClick={signOut}>Sign out</Button>}
+          />
+        )}
+
+        {vendor && (
+          <>
+            {/* KPIs — all real */}
+            <div className="grid grid-cols-3 gap-3">
+              <Kpi icon={<MessageSquare className="h-5 w-5" />} label="Total leads" value={leads.length} />
+              <Kpi icon={<TrendingUp className="h-5 w-5" />} label="New" value={newLeads.length} tone="primary" />
+              <Kpi
+                icon={<Star className="h-5 w-5" />}
+                label="Rating"
+                value={vendor.rating != null ? vendor.rating.toFixed(1) : '—'}
+              />
+            </div>
+
+            {/* Listing summary */}
+            <section className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
+              <div className="flex gap-3 p-3">
+                {vendor.image ? (
+                  <img src={vendor.image} alt="" className="h-20 w-20 shrink-0 rounded-[var(--radius-field)] object-cover" />
+                ) : (
+                  <div className="grid h-20 w-20 shrink-0 place-items-center rounded-[var(--radius-field)] bg-surface-2 text-muted">
+                    <Images className="h-6 w-6" aria-hidden />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-muted">{vendor.location ?? 'Location not set'}</p>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {vendor.category.slice(0, 3).map((c) => (
+                      <span key={c} className="rounded-[var(--radius-pill)] bg-surface-2 px-2 py-0.5 text-[11px] text-ink-soft">
+                        {categoryLabel(c)}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="tnum mt-1 text-xs text-muted">{vendor.images.length} photos</p>
+                </div>
               </div>
-              <span className={cn('text-sm font-semibold', onTarget ? 'text-success' : 'text-warning')}>
-                {onTarget ? 'On track' : 'Needs attention'}
-              </span>
-            </div>
-            <div className="mt-3 flex items-end justify-between">
-              <p className="tnum text-3xl font-semibold text-ink">
-                {stats?.medianResponseMins}
-                <span className="ml-1 text-base font-normal text-muted">min median</span>
-              </p>
-              <p className="tnum text-sm text-muted">target ≤ {stats?.responseTargetMins} min</p>
-            </div>
-            <SlaMeter value={stats?.medianResponseMins ?? 0} target={stats?.responseTargetMins ?? 10} good={!!onTarget} />
-          </section>
-        )}
+              <Link
+                to={`/vendor/${vendor.id}`}
+                className="flex items-center justify-center gap-1 border-t border-line py-2.5 text-sm font-semibold text-[var(--color-primary)]"
+              >
+                View public listing <ArrowRight className="h-4 w-4" />
+              </Link>
+            </section>
 
-        {/* KPI grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {isLoading ? (
-            <>
-              <Skeleton className="h-24" />
-              <Skeleton className="h-24" />
-              <Skeleton className="h-24" />
-              <Skeleton className="h-24" />
-            </>
-          ) : (
-            <>
-              <Kpi icon={<Users className="h-5 w-5" />} label="New leads" value={stats?.newLeads ?? 0} tone="coral" />
-              <Kpi icon={<TrendingUp className="h-5 w-5" />} label="Response rate" value={`${stats?.responseRatePct ?? 0}%`} tone="success" />
-              <Kpi icon={<Clock className="h-5 w-5" />} label="Upcoming" value={stats?.upcomingBookings ?? 0} />
-              <Kpi icon={<Store className="h-5 w-5" />} label="Active listings" value={stats?.activeListings ?? 0} />
-            </>
-          )}
-        </div>
-
-        {/* Lead pipeline */}
-        <section className="rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)]">
-          <h2 className="mb-3 font-semibold text-ink">Lead pipeline</h2>
-          <div className="space-y-2.5">
-            {PIPELINE.map((p) => {
-              const c = counts[p.stage] ?? 0
-              return (
-                <div key={p.stage} className="flex items-center gap-3">
-                  <span className="w-20 shrink-0 text-sm text-muted">{p.label}</span>
-                  <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2">
-                    <div
-                      className="h-full gradient-primary transition-all"
-                      style={{ width: `${(c / maxCount) * 100}%` }}
-                    />
-                  </div>
-                  <span className="tnum w-6 shrink-0 text-right text-sm font-semibold text-ink">{c}</span>
-                </div>
-              )
-            })}
-          </div>
-          <Link to="/vendor/leads" className="mt-3 flex items-center gap-1 text-sm font-semibold text-coral">
-            Manage leads <ArrowRight className="h-4 w-4" />
-          </Link>
-        </section>
-
-        {/* Weekly views */}
-        {!isLoading && stats && (
-          <section className="rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)]">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="font-semibold text-ink">Profile views · 7 days</h2>
-              <span className="tnum text-sm font-semibold text-ink">
-                {stats.weeklyViews.reduce((a, b) => a + b, 0)}
-              </span>
-            </div>
-            <Sparkline data={stats.weeklyViews} />
-          </section>
-        )}
-
-        {/* Leads needing response */}
-        <section>
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-ink">Needs a response</h2>
-            <Link to="/vendor/leads" className="text-sm font-semibold text-coral">View all</Link>
-          </div>
-          <div className="mt-3 space-y-3">
-            {freshLeads.length === 0 && <p className="text-sm text-muted">You’re all caught up. 🎉</p>}
-            {freshLeads.map((l) => (
-              <div key={l.id} className="rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)]">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-semibold text-ink">{l.coupleName}</h3>
-                    <p className="text-sm text-muted">
-                      {l.guests ? `${l.guests} guests · ` : ''}
-                      {l.eventDate}
-                    </p>
-                  </div>
-                  <Badge tone="saffron">SLA · {relativeTime(l.createdAt)}</Badge>
-                </div>
-                <p className="mt-2 line-clamp-2 text-sm text-ink-soft">{l.message}</p>
-                <Link to="/vendor/leads" className={buttonClasses({ size: 'sm', fullWidth: true, className: 'mt-3' })}>
-                  Respond now <ArrowRight className="h-4 w-4" />
+            {/* Recent leads */}
+            <section>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl text-ink">Recent enquiries</h2>
+                <Link to="/vendor/leads" className="text-sm font-semibold text-[var(--color-primary)]">
+                  View all
                 </Link>
               </div>
-            ))}
-          </div>
-        </section>
+              <div className="mt-3 space-y-3">
+                {leadsQ.isLoading && <Skeleton className="h-24 w-full" />}
+                {!leadsQ.isLoading && leads.length === 0 && (
+                  <p className="rounded-[var(--radius-card)] border border-line bg-surface p-4 text-sm text-muted">
+                    No enquiries yet. They appear here the moment a customer submits one from the app
+                    or the website.
+                  </p>
+                )}
+                {leads.slice(0, 3).map((l) => (
+                  <LeadRow key={l.id} lead={l} />
+                ))}
+              </div>
+            </section>
 
-        <Button
-          fullWidth
-          variant="outline"
-          onClick={() => {
-            switchRole('couple')
-            navigate('/')
-          }}
-        >
-          Switch to Couple mode
+            <Link to="/vendor/leads" className={buttonClasses({ fullWidth: true })}>
+              Manage all enquiries
+            </Link>
+          </>
+        )}
+
+        <Button fullWidth variant="outline" leftIcon={<LogOut className="h-4 w-4" />} onClick={signOut}>
+          Sign out
         </Button>
       </div>
     </div>
   )
 }
 
-function SlaMeter({ value, target, good }: { value: number; target: number; good: boolean }) {
-  // Scale so the target sits at 70% of the track.
-  const scale = (target / 0.7) || 1
-  const pct = Math.min(100, (value / scale) * 100)
+function Kpi({
+  icon,
+  label,
+  value,
+  tone = 'neutral',
+}: {
+  icon: ReactNode
+  label: string
+  value: ReactNode
+  tone?: 'neutral' | 'primary'
+}) {
   return (
-    <div className="relative mt-3 h-2 rounded-full bg-white">
-      <div
-        className={cn('h-full rounded-full', good ? 'bg-success' : 'bg-warning')}
-        style={{ width: `${pct}%` }}
-      />
-      {/* target marker at 70% */}
-      <div className="absolute top-1/2 h-3 w-0.5 -translate-y-1/2 bg-ink/40" style={{ left: '70%' }} />
-    </div>
-  )
-}
-
-function Sparkline({ data }: { data: number[] }) {
-  const max = Math.max(...data, 1)
-  const BAR_AREA = 72 // px available for the tallest bar
-  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-  return (
-    <div className="flex items-end justify-between gap-2">
-      {data.map((v, i) => (
-        <div key={i} className="flex flex-1 flex-col items-center justify-end gap-1">
-          <span className="tnum text-[10px] font-medium text-ink-soft">{v}</span>
-          <div
-            className="w-full rounded-t-md bg-coral/80 transition-all"
-            style={{ height: Math.max(4, (v / max) * BAR_AREA) }}
-            title={`${v} views`}
-          />
-          <span className="text-[10px] text-muted">{days[i]}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function Kpi({ icon, label, value, tone = 'neutral' }: { icon: ReactNode; label: string; value: ReactNode; tone?: 'neutral' | 'coral' | 'success' }) {
-  const toneClass = tone === 'coral' ? 'text-coral' : tone === 'success' ? 'text-success' : 'text-ink'
-  return (
-    <div className="rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)]">
-      <span className={toneClass}>{icon}</span>
-      <div className="tnum mt-2 text-2xl font-semibold text-ink">{value}</div>
-      <div className="text-xs text-muted">{label}</div>
+    <div className="rounded-[var(--radius-card)] border border-line bg-surface p-3">
+      <span className={tone === 'primary' ? 'text-[var(--color-primary)]' : 'text-muted'}>{icon}</span>
+      <div className="tnum mt-1.5 text-xl font-bold text-ink">{value}</div>
+      <div className="text-[11px] text-muted">{label}</div>
     </div>
   )
 }

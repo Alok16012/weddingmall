@@ -13,12 +13,12 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const base =
-  'tap inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] font-semibold transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral/60 focus-visible:ring-offset-2'
+  'tap inline-flex items-center justify-center gap-2 rounded-[var(--radius-field)] font-semibold transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/60 focus-visible:ring-offset-2'
 
 const variants: Record<Variant, string> = {
-  primary: 'gradient-primary text-white shadow-[var(--shadow-card)]',
+  primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)]',
   secondary: 'bg-ink text-white',
-  outline: 'border border-line bg-surface text-ink',
+  outline: 'border border-[var(--color-primary)] bg-surface text-[var(--color-primary)]',
   ghost: 'text-ink hover:bg-surface-2',
 }
 

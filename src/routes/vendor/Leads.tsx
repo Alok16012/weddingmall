@@ -1,85 +1,78 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { CalendarClock, MessageCircle, Phone } from 'lucide-react'
-import { repositories } from '@/repositories'
-import type { EnquiryStage } from '@/types/domain'
-import { formatINR, relativeTime } from '@/lib/format'
+import { useMemo, useState } from 'react'
+import { Navigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { MessageSquare } from 'lucide-react'
+import { useSession } from '@/auth/SessionContext'
+import { getMyVendor } from '@/services/vendors'
+import { listLeadsForVendor } from '@/services/leads'
 import { cn } from '@/lib/cn'
-import { Badge } from '@/components/ui/Badge'
-import { Skeleton } from '@/components/ui/states'
+import { LeadRow } from '@/components/LeadRow'
+import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { ScreenHeader } from '@/components/layout/ScreenHeader'
 
-const STAGES: EnquiryStage[] = ['new', 'contacted', 'quoted', 'visit_scheduled', 'won', 'lost']
-const stageTone: Record<EnquiryStage, 'coral' | 'saffron' | 'success' | 'muted'> = {
-  new: 'coral',
-  contacted: 'saffron',
-  quoted: 'saffron',
-  visit_scheduled: 'saffron',
-  won: 'success',
-  lost: 'muted',
-}
-
 export default function VendorLeads() {
-  const qc = useQueryClient()
-  const { data, isLoading } = useQuery({
-    queryKey: ['vendor', 'leads'],
-    queryFn: () => repositories.enquiries.listForVendor(),
+  const { email, isVendor, initializing } = useSession()
+  const [filter, setFilter] = useState<'all' | 'new'>('all')
+
+  const vendorQ = useQuery({
+    queryKey: ['my-vendor', email],
+    queryFn: () => getMyVendor(email!),
+    enabled: !!email,
+  })
+  const leadsQ = useQuery({
+    queryKey: ['my-leads', vendorQ.data?.id],
+    queryFn: () => listLeadsForVendor(vendorQ.data!.id),
+    enabled: !!vendorQ.data?.id,
+    // Enquiries arrive from the website too — keep this fresh on focus.
+    refetchOnWindowFocus: true,
+    staleTime: 15_000,
   })
 
-  const setStage = useMutation({
-    mutationFn: ({ id, stage }: { id: string; stage: EnquiryStage }) =>
-      repositories.enquiries.setStage(id, stage),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['vendor', 'leads'] }),
-  })
+  const leads = useMemo(() => {
+    const rows = leadsQ.data ?? []
+    return filter === 'new'
+      ? rows.filter((l) => (l.status ?? 'new').toLowerCase() === 'new')
+      : rows
+  }, [leadsQ.data, filter])
+
+  if (initializing) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>
+  if (!isVendor) return <Navigate to="/vendor/login" replace />
 
   return (
     <div>
-      <ScreenHeader title="Leads" subtitle={`${data?.length ?? 0} active`} />
-      <div className="space-y-3 px-4 pt-2">
-        {isLoading && <Skeleton className="h-40 w-full" />}
-        {data?.map((l) => (
-          <div key={l.id} className="rounded-[var(--radius-card)] bg-surface p-4 shadow-[var(--shadow-card)]">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <h3 className="font-semibold text-ink">{l.coupleName}</h3>
-                <p className="text-sm text-muted">
-                  {l.guests ? `${l.guests} guests · ` : ''}{l.eventDate}
-                  {l.budget ? ` · ${formatINR(l.budget.minorUnits, { compact: true })}` : ''}
-                </p>
-              </div>
-              <Badge tone={stageTone[l.stage]}>{l.stage.replace('_', ' ')}</Badge>
-            </div>
-            <p className="mt-2 text-sm text-ink-soft">{l.message}</p>
+      <ScreenHeader
+        title="Enquiries"
+        subtitle={leadsQ.data ? `${leadsQ.data.length} total` : undefined}
+      />
+      <div className="px-4">
+        <div className="flex rounded-[var(--radius-field)] bg-surface-2 p-1">
+          {(['all', 'new'] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={cn(
+                'tap flex-1 rounded-[var(--radius-field)] py-2 text-sm font-semibold capitalize transition',
+                filter === f ? 'bg-surface text-ink shadow-[var(--shadow-card)]' : 'text-muted',
+              )}
+            >
+              {f === 'all' ? 'All' : 'New'}
+            </button>
+          ))}
+        </div>
+      </div>
 
-            <div className="mt-3 flex gap-2">
-              <a href="tel:+910000000000" className="tap inline-flex flex-1 items-center justify-center gap-1 rounded-[var(--radius-pill)] border border-line py-2 text-sm font-semibold text-ink">
-                <Phone className="h-4 w-4" /> Call
-              </a>
-              <button className="tap inline-flex flex-1 items-center justify-center gap-1 rounded-[var(--radius-pill)] border border-line py-2 text-sm font-semibold text-ink">
-                <MessageCircle className="h-4 w-4" /> Message
-              </button>
-              <button className="tap inline-flex flex-1 items-center justify-center gap-1 rounded-[var(--radius-pill)] border border-line py-2 text-sm font-semibold text-ink">
-                <CalendarClock className="h-4 w-4" /> Visit
-              </button>
-            </div>
-
-            {/* Stage transition */}
-            <div className="no-scrollbar mt-3 flex gap-1.5 overflow-x-auto">
-              {STAGES.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setStage.mutate({ id: l.id, stage: s })}
-                  disabled={setStage.isPending}
-                  className={cn(
-                    'shrink-0 rounded-[var(--radius-pill)] px-3 py-1 text-xs font-medium capitalize transition',
-                    l.stage === s ? 'gradient-primary text-white' : 'bg-surface-2 text-muted',
-                  )}
-                >
-                  {s.replace('_', ' ')}
-                </button>
-              ))}
-            </div>
-            <p className="mt-2 text-right text-xs text-muted">{relativeTime(l.createdAt)}</p>
-          </div>
+      <div className="space-y-3 px-4 pt-4">
+        {leadsQ.isLoading && [0, 1].map((i) => <Skeleton key={i} className="h-28 w-full" />)}
+        {leadsQ.isError && <ErrorState onRetry={() => leadsQ.refetch()} />}
+        {!leadsQ.isLoading && leads.length === 0 && (
+          <EmptyState
+            icon={<MessageSquare className="h-7 w-7" />}
+            title={filter === 'new' ? 'No new enquiries' : 'No enquiries yet'}
+            description="Enquiries from the app and the WeddingMall website both appear here."
+          />
+        )}
+        {leads.map((l) => (
+          <LeadRow key={l.id} lead={l} />
         ))}
       </div>
     </div>

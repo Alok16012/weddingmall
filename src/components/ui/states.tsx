@@ -50,7 +50,7 @@ export function EmptyState({
 export function ErrorState({ onRetry, message }: { onRetry?: () => void; message?: string }) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-      <div className="mb-4 grid h-16 w-16 place-items-center rounded-full bg-coral-100 text-coral-600">
+      <div className="mb-4 grid h-16 w-16 place-items-center rounded-full bg-[var(--color-primary-100)] text-[var(--color-primary)]">
         <AlertCircle className="h-7 w-7" aria-hidden />
       </div>
       <h3 className="text-lg font-semibold text-ink">Something went wrong</h3>

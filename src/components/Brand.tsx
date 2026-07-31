@@ -21,7 +21,7 @@ export function Logo({ className, showWordmark = true }: { className?: string; s
     <span className={cn('inline-flex items-center gap-2', className)}>
       <LogoMark />
       {showWordmark && (
-        <span className="font-display text-xl font-semibold text-coral">WeddingMall</span>
+        <span className="font-display text-xl font-semibold text-[var(--color-primary)]">WeddingMall</span>
       )}
     </span>
   )

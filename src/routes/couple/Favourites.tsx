@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQueries } from '@tanstack/react-query'
 import { Heart } from 'lucide-react'
-import { repositories } from '@/repositories'
+import { getVendor } from '@/services/vendors'
 import { useFavourites } from '@/hooks/useFavourites'
 import { VendorCard } from '@/components/VendorCard'
 import { EmptyState, VendorCardSkeleton } from '@/components/ui/states'
@@ -10,19 +10,24 @@ import { ScreenHeader } from '@/components/layout/ScreenHeader'
 
 export default function Favourites() {
   const { ids } = useFavourites()
-  const { data: all, isLoading } = useQuery({
-    queryKey: ['listings', { sort: 'recommended' }],
-    queryFn: () => repositories.listings.list({ sort: 'recommended' }),
+
+  // Shortlist is on-device; hydrate each id from the live vendors table.
+  const results = useQueries({
+    queries: ids.map((id) => ({
+      queryKey: ['vendor', id],
+      queryFn: () => getVendor(id),
+      staleTime: 60_000,
+    })),
   })
 
-  const shortlisted = (all ?? []).filter((l) => ids.includes(l.id))
+  const loading = results.some((r) => r.isLoading)
+  const vendors = results.map((r) => r.data).filter((v): v is NonNullable<typeof v> => !!v)
 
   return (
     <div>
-      <ScreenHeader title="Shortlist" subtitle={`${shortlisted.length} saved`} />
-      <div className="space-y-4 px-4 pt-2">
-        {isLoading && <VendorCardSkeleton />}
-        {!isLoading && shortlisted.length === 0 && (
+      <ScreenHeader title="Shortlist" subtitle={ids.length ? `${ids.length} saved` : undefined} />
+      <div className="space-y-4 px-4 pt-1">
+        {ids.length === 0 && (
           <EmptyState
             icon={<Heart className="h-7 w-7" />}
             title="No saved vendors yet"
@@ -34,8 +39,9 @@ export default function Favourites() {
             }
           />
         )}
-        {shortlisted.map((l) => (
-          <VendorCard key={l.id} listing={l} />
+        {loading && ids.length > 0 && <VendorCardSkeleton />}
+        {vendors.map((v, i) => (
+          <VendorCard key={v.id} vendor={v} index={i} />
         ))}
       </div>
     </div>

@@ -1,110 +1,139 @@
 import { Link } from 'react-router-dom'
-import { BadgeCheck, Car, Heart, Images, MapPin, Users } from 'lucide-react'
-import type { Listing } from '@/types/domain'
+import { BadgeCheck, Heart, Images, MapPin, Star, Users } from 'lucide-react'
+import type { Vendor } from '@/types/domain'
 import { cn } from '@/lib/cn'
-import { formatINR } from '@/lib/format'
-import { Stars } from './ui/Stars'
 import { buttonClasses } from './ui/Button'
 import { useFavourites } from '@/hooks/useFavourites'
 
-function capacityLabel(l: Listing): string | null {
-  if (l.capacityMin && l.capacityMax) return `${l.capacityMin}–${l.capacityMax} Guests`
-  if (l.capacityMax) return `Up to ${l.capacityMax} Guests`
+/** Plate pricing is the real, populated price signal on this backend. */
+export function platePrice(v: Vendor): string | null {
+  const veg = v.vegPrice?.replace(/\/-$/, '').trim()
+  const nonVeg = v.nonVegPrice?.replace(/\/-$/, '').trim()
+  if (veg && nonVeg) return `₹${veg} veg · ₹${nonVeg} non-veg`
+  if (veg) return `₹${veg} per plate (veg)`
+  if (nonVeg) return `₹${nonVeg} per plate`
+  if (v.price) return `₹${v.price}${v.priceUnit ? ` ${v.priceUnit}` : ''}`
   return null
 }
 
-/** Full results card — matches the Explore "Wedding Venues" reference design. */
-export function VendorCard({ listing, index }: { listing: Listing; index?: number }) {
+const BADGE_TONE: Record<string, string> = {
+  'Most Preferred': 'bg-[var(--color-primary)] text-white',
+  Preferred: 'bg-[var(--color-accent)] text-[var(--color-text)]',
+  'Budget Venue': 'bg-success-100 text-success',
+  Promotional: 'bg-[var(--color-primary-100)] text-[var(--color-primary)]',
+}
+
+export function VendorCard({ vendor, index }: { vendor: Vendor; index?: number }) {
   const { isFavourite, toggle } = useFavourites()
-  const fav = isFavourite(listing.id)
-  const cap = capacityLabel(listing)
+  const fav = isFavourite(vendor.id)
+  const price = platePrice(vendor)
+  const seating = vendor.amenities.seatingCapacity
+  const parking = vendor.amenities.parkingCapacity
 
   return (
     <article
       style={index !== undefined ? ({ '--i': index } as React.CSSProperties) : undefined}
       className={cn(
-        'card-interactive overflow-hidden rounded-[var(--radius-card)] bg-surface shadow-[var(--shadow-card)]',
+        'card-interactive overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface',
         index !== undefined && 'reveal',
       )}
     >
-      <Link to={`/listing/${listing.id}`} className="relative block">
-        <img
-          src={listing.coverImage.url}
-          alt={listing.coverImage.alt}
-          loading="lazy"
-          className="h-44 w-full object-cover"
-        />
-        {listing.verified && (
-          <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-ink/85 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white">
-            <BadgeCheck className="h-3.5 w-3.5 text-success" aria-hidden />
-            VERIFIED
+      <Link to={`/vendor/${vendor.id}`} className="relative block">
+        {vendor.image ? (
+          <img
+            src={vendor.image}
+            alt={vendor.name}
+            loading="lazy"
+            className="h-44 w-full bg-surface-2 object-cover"
+          />
+        ) : (
+          <div className="grid h-44 w-full place-items-center bg-surface-2 text-muted">
+            <Images className="h-8 w-8" aria-hidden />
+          </div>
+        )}
+
+        {vendor.badge && (
+          <span
+            className={cn(
+              'absolute left-3 top-3 rounded-[var(--radius-pill)] px-2.5 py-1 text-[11px] font-semibold',
+              BADGE_TONE[vendor.badge] ?? 'bg-ink/85 text-white',
+            )}
+          >
+            {vendor.badge}
           </span>
         )}
-        {listing.gallery.length + 1 > 1 && (
+
+        {vendor.images.length > 1 && (
           <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-ink/70 px-2 py-1 text-[11px] font-semibold text-white">
-            <Images className="h-3.5 w-3.5" aria-hidden /> {listing.gallery.length + 1}
+            <Images className="h-3.5 w-3.5" aria-hidden /> {vendor.images.length}
           </span>
         )}
+
         <button
           type="button"
           onClick={(e) => {
             e.preventDefault()
-            toggle(listing.id)
+            toggle(vendor.id)
           }}
           aria-pressed={fav}
           aria-label={fav ? 'Remove from shortlist' : 'Add to shortlist'}
           className="tap absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-[var(--shadow-card)]"
         >
-          <Heart className={cn('h-5 w-5 transition', fav ? 'fill-coral text-coral' : 'text-ink-soft')} aria-hidden />
+          <Heart
+            className={cn('h-5 w-5 transition', fav ? 'fill-[var(--color-primary)] text-[var(--color-primary)]' : 'text-ink-soft')}
+            aria-hidden
+          />
         </button>
       </Link>
 
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-lg font-semibold text-ink">
-            <Link to={`/listing/${listing.id}`}>{listing.title}</Link>
+          <h3 className="text-[17px] font-bold leading-snug text-ink">
+            <Link to={`/vendor/${vendor.id}`}>{vendor.name}</Link>
           </h3>
-          <span className="whitespace-nowrap pt-1 text-sm font-bold text-coral">
-            {listing.priceMode === 'on_request' || !listing.fromPrice
-              ? 'Price on Request'
-              : `From ${formatINR(listing.fromPrice.minorUnits, { compact: true })}`}
-          </span>
+          {vendor.rating != null && (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-[var(--radius-field)] bg-success px-1.5 py-0.5 text-xs font-bold text-white">
+              <Star className="h-3 w-3 fill-white" aria-hidden />
+              <span className="tnum">{vendor.rating.toFixed(1)}</span>
+            </span>
+          )}
         </div>
 
-        <div className="mt-1 flex items-center gap-1 text-sm text-muted">
-          <MapPin className="h-4 w-4" aria-hidden />
-          {listing.city}
-        </div>
+        {vendor.location && (
+          <p className="mt-1 flex items-center gap-1 text-sm text-muted">
+            <MapPin className="h-4 w-4" aria-hidden /> {vendor.location}
+          </p>
+        )}
 
-        <div className="mt-2">
-          <Stars rating={listing.rating} count={listing.reviewCount || undefined} />
-          {!listing.reviewCount && <span className="ml-1 text-sm text-muted">No reviews yet</span>}
-        </div>
-
-        {(cap || listing.amenities[0]) && (
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            {cap && (
-              <div className="flex items-center gap-2 rounded-[var(--radius-field)] bg-surface-2 px-3 py-2 text-sm text-ink-soft">
-                <Users className="h-4 w-4" aria-hidden /> {cap}
-              </div>
+        {(seating || parking) && (
+          <div className="mt-2.5 flex flex-wrap gap-2">
+            {seating && (
+              <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-field)] bg-surface-2 px-2.5 py-1.5 text-xs text-ink-soft">
+                <Users className="h-3.5 w-3.5" aria-hidden /> {seating} guests
+              </span>
             )}
-            {listing.amenities.find((a) => /parking/i.test(a)) && (
-              <div className="flex items-center gap-2 rounded-[var(--radius-field)] bg-surface-2 px-3 py-2 text-sm text-ink-soft">
-                <Car className="h-4 w-4" aria-hidden />{' '}
-                {listing.amenities.find((a) => /parking/i.test(a))}
-              </div>
+            {vendor.amenities.bridalRoom && (
+              <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-field)] bg-surface-2 px-2.5 py-1.5 text-xs text-ink-soft">
+                <BadgeCheck className="h-3.5 w-3.5" aria-hidden /> Bridal room
+              </span>
             )}
           </div>
         )}
 
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-3 flex items-end justify-between gap-2">
+          <span className="text-sm font-bold text-[var(--color-primary)]">
+            {price ?? 'Price on Request'}
+          </span>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
           <Link
-            to={`/enquiry/${listing.id}`}
-            className={buttonClasses({ variant: 'outline', className: 'text-coral' })}
+            to={`/enquiry/${vendor.id}`}
+            className={buttonClasses({ variant: 'outline', size: 'sm' })}
           >
             Send Enquiry
           </Link>
-          <Link to={`/listing/${listing.id}`} className={buttonClasses()}>
+          <Link to={`/vendor/${vendor.id}`} className={buttonClasses({ size: 'sm' })}>
             View Details
           </Link>
         </div>

@@ -1,38 +1,35 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { repositories } from '@/repositories'
+import { useCallback, useEffect, useState } from 'react'
+import { getFavouriteIds, toggleFavourite as toggle } from '@/services/favourites'
 
-const KEY = ['favourites']
+const EVENT = 'wm:favourites-changed'
 
-/** Optimistic shortlist with rollback on failure (spec FAV-01). */
+/**
+ * On-device shortlist (this backend has no favourites table).
+ * A window event keeps every mounted component in sync instantly.
+ */
 export function useFavourites() {
-  const qc = useQueryClient()
-  const { data: ids = [] } = useQuery({
-    queryKey: KEY,
-    queryFn: () => repositories.favourites.ids(),
-  })
+  const [ids, setIds] = useState<string[]>(() => getFavouriteIds())
 
-  const mutation = useMutation({
-    mutationFn: async ({ id, next }: { id: string; next: boolean }) => {
-      if (next) await repositories.favourites.add(id)
-      else await repositories.favourites.remove(id)
-    },
-    onMutate: async ({ id, next }) => {
-      await qc.cancelQueries({ queryKey: KEY })
-      const prev = qc.getQueryData<string[]>(KEY) ?? []
-      const optimistic = next ? [...new Set([...prev, id])] : prev.filter((x) => x !== id)
-      qc.setQueryData(KEY, optimistic)
-      return { prev }
-    },
-    onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(KEY, ctx.prev) // rollback
-    },
-    onSettled: () => qc.invalidateQueries({ queryKey: KEY }),
-  })
+  useEffect(() => {
+    const sync = () => setIds(getFavouriteIds())
+    window.addEventListener(EVENT, sync)
+    window.addEventListener('storage', sync)
+    return () => {
+      window.removeEventListener(EVENT, sync)
+      window.removeEventListener('storage', sync)
+    }
+  }, [])
+
+  const toggleFavourite = useCallback((id: string) => {
+    const next = toggle(id)
+    setIds(next)
+    window.dispatchEvent(new Event(EVENT))
+  }, [])
 
   return {
     ids,
-    isFavourite: (id: string) => ids.includes(id),
-    toggle: (id: string) => mutation.mutate({ id, next: !ids.includes(id) }),
     count: ids.length,
+    isFavourite: useCallback((id: string) => ids.includes(id), [ids]),
+    toggle: toggleFavourite,
   }
 }
