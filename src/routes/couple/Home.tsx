@@ -9,6 +9,7 @@ import { Logo } from '@/components/Brand'
 import { VendorCard } from '@/components/VendorCard'
 import { VendorCardSkeleton, Skeleton, ErrorState } from '@/components/ui/states'
 import { CategoryTile } from '@/components/CategoryTile'
+import { TrustStrip, WhyWeddingMall } from '@/components/Trust'
 
 const HERO =
   'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=88'
@@ -67,6 +68,11 @@ export default function Home() {
             <Search className="h-5 w-5" aria-hidden />
             Search venues, vendors, cities
           </Link>
+        </div>
+
+        {/* Trust signals */}
+        <div className="px-4">
+          <TrustStrip />
         </div>
 
         {/* Categories */}
@@ -148,6 +154,11 @@ export default function Home() {
             </Rail>
           </Section>
         )}
+
+        {/* Trust / safety */}
+        <div className="pb-2">
+          <WhyWeddingMall />
+        </div>
       </div>
     </div>
   )
