@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import { ChevronDown, MapPin, Search, SlidersHorizontal, X } from 'lucide-react'
+import { MapPin, Search, SlidersHorizontal, X } from 'lucide-react'
 import { CATEGORY_LABELS, categoryLabel } from '@/types/domain'
 import { listVendors, type VendorSort } from '@/services/vendors'
 import { listPopularCities } from '@/services/content'
 import { useDebounced } from '@/hooks/useDebounced'
 import { cn } from '@/lib/cn'
-import { VendorCard } from '@/components/VendorCard'
-import { EmptyState, ErrorState, VendorCardSkeleton } from '@/components/ui/states'
+import { VendorRow } from '@/components/VendorRow'
+import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { Button } from '@/components/ui/Button'
 import { ScreenHeader } from '@/components/layout/ScreenHeader'
 
@@ -78,7 +78,7 @@ export default function Explore() {
     <div>
       <ScreenHeader title={title} subtitle={city ?? undefined} />
 
-      <div className="space-y-3 px-4">
+      <div className="sticky top-[60px] z-20 space-y-3 border-b border-line bg-canvas px-4 pb-2.5 pt-1">
         {/* Search */}
         <label className="flex items-center gap-3 rounded-[var(--radius-field)] border border-line bg-surface px-4 py-3">
           <Search className="h-5 w-5 text-muted" aria-hidden />
@@ -131,7 +131,6 @@ export default function Explore() {
                 </option>
               ))}
             </select>
-            <ChevronDown className="h-3.5 w-3.5 text-muted" aria-hidden />
           </label>
         </div>
 
@@ -182,8 +181,8 @@ export default function Explore() {
       </div>
 
       {/* Results */}
-      <div className="space-y-4 px-4 pt-1">
-        {isLoading && [0, 1, 2].map((i) => <VendorCardSkeleton key={i} />)}
+      <div className="space-y-2.5 px-4 pt-1">
+        {isLoading && [0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-[124px] w-full" />)}
         {isError && <ErrorState onRetry={() => refetch()} />}
         {!isLoading && !isError && items.length === 0 && (
           <EmptyState
@@ -198,7 +197,7 @@ export default function Explore() {
           />
         )}
         {items.map((v, i) => (
-          <VendorCard key={v.id} vendor={v} index={i < PAGE_SIZE ? i : undefined} />
+          <VendorRow key={v.id} vendor={v} index={i < PAGE_SIZE ? i : undefined} />
         ))}
 
         {hasNextPage && (

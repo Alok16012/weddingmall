@@ -15,7 +15,7 @@ export function ScreenHeader({
 }) {
   const navigate = useNavigate()
   return (
-    <header className="sticky top-0 z-30 flex items-center gap-3 bg-canvas/95 px-4 py-3 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-line flex items-center gap-3 bg-canvas/95 px-4 py-3 backdrop-blur">
       {back && (
         <button
           onClick={() => navigate(-1)}

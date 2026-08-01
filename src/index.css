@@ -45,10 +45,20 @@
   --font-display: 'DM Sans', system-ui, -apple-system, sans-serif;
   --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
 
-  --shadow-card: 0 2px 8px rgb(25 25 29 / 0.06), 0 12px 28px rgb(25 25 29 / 0.06);
-  --shadow-float: 0 8px 24px rgb(25 25 29 / 0.12);
+  /* Elevation scale — 4 levels (Dimensional Layering).
+     e1 rests, e2 cards, e3 floats over content, e4 sticky/overlay chrome. */
+  --shadow-e1: 0 1px 2px rgb(25 25 29 / 0.06);
+  --shadow-e2: 0 1px 3px rgb(25 25 29 / 0.08), 0 4px 12px rgb(25 25 29 / 0.06);
+  --shadow-e3: 0 4px 10px rgb(25 25 29 / 0.10), 0 12px 28px rgb(25 25 29 / 0.10);
+  --shadow-e4: 0 8px 20px rgb(25 25 29 / 0.14), 0 20px 44px rgb(25 25 29 / 0.12);
+
+  /* Legacy aliases */
+  --shadow-card: var(--shadow-e2);
+  --shadow-float: var(--shadow-e3);
 
   --gradient-primary: linear-gradient(105deg, #ff5a52 0%, #ff9b2f 100%);
+  /* Brand header block the search widget floats over (MakeMyTrip pattern) */
+  --gradient-header: linear-gradient(160deg, #ff5a52 0%, #ff7a3d 55%, #ff9b2f 100%);
 }
 
 @layer base {
@@ -132,6 +142,29 @@
 /* Hide scrollbars on horizontal rails while keeping scroll */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ---- Dimensional Layering utilities (MakeMyTrip-style depth) ---- */
+
+/** Brand header block that content floats over. */
+@utility header-block {
+  background-image: var(--gradient-header);
+}
+
+/** Surface that lifts off the page — the floating search widget, sheets. */
+@utility elevate-3 {
+  box-shadow: var(--shadow-e3);
+}
+@utility elevate-2 {
+  box-shadow: var(--shadow-e2);
+}
+@utility elevate-4 {
+  box-shadow: var(--shadow-e4);
+}
+
+/** Dense list row: hairline separation instead of gaps (density 8). */
+@utility row-divide {
+  border-bottom: 1px solid var(--color-line);
+}
 
 /* Clickable affordance on web (the app also runs in-browser) */
 @layer base {
