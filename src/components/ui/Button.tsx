@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { cn } from '@/lib/cn'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'outline'
+type Variant = 'primary' | 'secondary' | 'outline' | 'ghost'
 type Size = 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -13,23 +13,31 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const base =
-  'tap inline-flex items-center justify-center gap-2 rounded-[var(--radius-field)] font-semibold transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/60 focus-visible:ring-offset-2'
+  'pressable tap inline-flex items-center justify-center gap-2 rounded-[var(--radius-field)] font-bold ' +
+  'disabled:opacity-45 disabled:pointer-events-none ' +
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2'
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)]',
-  secondary: 'bg-ink text-white',
-  outline: 'border border-[var(--color-primary)] bg-surface text-[var(--color-primary)]',
+  // Gradient + coloured lift: the CTA should feel raised off the page.
+  primary: 'btn-primary-surface',
+  secondary: 'bg-ink text-white elevate-2',
+  outline: 'border border-[var(--color-primary)] bg-surface text-[var(--color-primary)] elevate-1',
   ghost: 'text-ink hover:bg-surface-2',
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'h-10 px-4 text-sm',
-  md: 'h-12 px-5 text-[15px]',
-  lg: 'h-14 px-6 text-base',
+  sm: 'h-9 px-3.5 text-[13px]',
+  md: 'h-11 px-5 text-[15px]',
+  lg: 'h-13 px-6 text-base',
 }
 
-/** Shared classes so a <Link> can be styled as a button (spec: real navigation, not toasts). */
-export function buttonClasses(opts?: { variant?: Variant; size?: Size; fullWidth?: boolean; className?: string }) {
+/** Shared classes so a <Link> can be styled identically to a <Button>. */
+export function buttonClasses(opts?: {
+  variant?: Variant
+  size?: Size
+  fullWidth?: boolean
+  className?: string
+}) {
   const { variant = 'primary', size = 'md', fullWidth, className } = opts ?? {}
   return cn(base, variants[variant], sizes[size], fullWidth && 'w-full', className)
 }
@@ -47,14 +55,19 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={cn(base, variants[variant], sizes[size], fullWidth && 'w-full', className)}
+      className={buttonClasses({ variant, size, fullWidth, className })}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       {...rest}
     >
       {loading ? (
         <span
-          className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+          className={cn(
+            'h-4 w-4 animate-spin rounded-full border-2 border-t-transparent',
+            variant === 'primary' || variant === 'secondary'
+              ? 'border-white/50 border-t-transparent'
+              : 'border-[var(--color-primary)]/40 border-t-transparent',
+          )}
           aria-hidden
         />
       ) : (

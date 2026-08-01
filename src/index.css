@@ -166,6 +166,64 @@
   border-bottom: 1px solid var(--color-line);
 }
 
+/* ------------------------------------------------------------------ motion */
+
+/**
+ * Image settle. Images pop in harshly otherwise; a short fade + 1.02→1 scale
+ * makes lists feel composed. 260ms — long enough to read as intentional, short
+ * enough to go unnoticed (the goal). Reduced-motion users get it instantly.
+ */
+.img-fade {
+  opacity: 0;
+}
+.img-fade.is-loaded {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .img-fade {
+    transform: scale(1.02);
+    transition: opacity 0.26s ease-out, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .img-fade.is-loaded {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .img-fade { opacity: 1; }
+}
+
+/**
+ * Tactile press. The single highest-value micro-interaction on touch: the
+ * control must acknowledge the finger within ~100ms. Scale down slightly and
+ * drop the shadow so the surface reads as pushed toward the page.
+ */
+@utility pressable {
+  transition:
+    transform 0.14s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.14s ease-out,
+    filter 0.14s ease-out;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.pressable:active {
+  transform: scale(0.97);
+  box-shadow: var(--shadow-e1) !important;
+  filter: brightness(0.96);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pressable:active { transform: none; }
+}
+
+/** Primary CTA surface: gradient + coloured lift, the MMT button treatment. */
+@utility btn-primary-surface {
+  background-image: var(--gradient-primary);
+  box-shadow: 0 1px 2px rgb(255 90 82 / 0.30), 0 6px 16px rgb(255 90 82 / 0.28);
+  color: #fff;
+}
+.btn-primary-surface:active {
+  box-shadow: 0 1px 2px rgb(255 90 82 / 0.32) !important;
+}
+
 /* Clickable affordance on web (the app also runs in-browser) */
 @layer base {
   button:not(:disabled),

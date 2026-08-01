@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Heart, Images, MapPin, Star, Users } from 'lucide-react'
+import { Img } from './ui/Img'
 import type { Vendor } from '@/types/domain'
 import { cn } from '@/lib/cn'
 import { platePrice } from './VendorCard'
@@ -27,20 +28,21 @@ export function VendorRow({ vendor, index }: { vendor: Vendor; index?: number })
     <article
       style={index !== undefined ? ({ '--i': index } as React.CSSProperties) : undefined}
       className={cn(
-        'card-interactive elevate-2 relative overflow-hidden rounded-[var(--radius-card)] bg-surface',
+        'pressable elevate-2 relative overflow-hidden rounded-[var(--radius-card)] bg-surface',
         index !== undefined && 'reveal',
       )}
     >
       <Link to={`/vendor/${vendor.id}`} className="flex gap-3 p-2.5">
         {/* Media */}
-        <div className="relative h-[104px] w-[104px] shrink-0 overflow-hidden rounded-[var(--radius-field)] bg-surface-2">
-          {vendor.image ? (
-            <img src={vendor.image} alt={vendor.name} loading="lazy" className="h-full w-full object-cover" />
-          ) : (
-            <div className="grid h-full w-full place-items-center text-muted">
-              <Images className="h-6 w-6" aria-hidden />
-            </div>
-          )}
+        <div className="relative h-[104px] w-[104px] shrink-0">
+          <Img
+            src={vendor.image}
+            alt={vendor.name}
+            width={104}
+            height={104}
+            wrapperClassName="h-[104px] w-[104px]"
+            fallback={<Images className="h-6 w-6" aria-hidden />}
+          />
           {vendor.images.length > 1 && (
             <span className="absolute bottom-1 left-1 inline-flex items-center gap-0.5 rounded bg-ink/75 px-1.5 py-0.5 text-[10px] font-semibold text-white">
               <Images className="h-2.5 w-2.5" aria-hidden /> {vendor.images.length}
@@ -88,7 +90,7 @@ export function VendorRow({ vendor, index }: { vendor: Vendor; index?: number })
             <span className="tnum truncate text-[13px] font-bold text-[var(--color-primary)]">
               {price ?? 'Price on Request'}
             </span>
-            <span className="shrink-0 rounded-[var(--radius-field)] bg-[var(--color-primary)] px-3 py-1.5 text-[11px] font-bold text-white">
+            <span className="btn-primary-surface shrink-0 rounded-[var(--radius-field)] px-3.5 py-1.5 text-[11px] font-bold">
               Enquire
             </span>
           </div>

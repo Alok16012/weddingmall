@@ -4,6 +4,7 @@ import type { Vendor } from '@/types/domain'
 import { cn } from '@/lib/cn'
 import { buttonClasses } from './ui/Button'
 import { useFavourites } from '@/hooks/useFavourites'
+import { Img } from './ui/Img'
 
 /** Plate pricing is the real, populated price signal on this backend. */
 export function platePrice(v: Vendor): string | null {
@@ -34,23 +35,20 @@ export function VendorCard({ vendor, index }: { vendor: Vendor; index?: number }
     <article
       style={index !== undefined ? ({ '--i': index } as React.CSSProperties) : undefined}
       className={cn(
-        'card-interactive overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface',
+        'pressable elevate-2 overflow-hidden rounded-[var(--radius-card)] bg-surface',
         index !== undefined && 'reveal',
       )}
     >
       <Link to={`/vendor/${vendor.id}`} className="relative block">
-        {vendor.image ? (
-          <img
-            src={vendor.image}
-            alt={vendor.name}
-            loading="lazy"
-            className="h-44 w-full bg-surface-2 object-cover"
-          />
-        ) : (
-          <div className="grid h-44 w-full place-items-center bg-surface-2 text-muted">
-            <Images className="h-8 w-8" aria-hidden />
-          </div>
-        )}
+        <Img
+          src={vendor.image}
+          alt={vendor.name}
+          width={280}
+          height={176}
+          rounded="rounded-none"
+          wrapperClassName="h-44 w-full"
+          fallback={<Images className="h-8 w-8" aria-hidden />}
+        />
 
         {vendor.badge && (
           <span

@@ -186,6 +186,45 @@ export async function countByCategory(slug: string, city?: string): Promise<numb
   }
 }
 
+export interface CategorySummary {
+  count: number
+  /** A representative photo taken from a real vendor in this category. */
+  image: string | null
+}
+
+/**
+ * Count + a real cover photo for a category tile. Using the vendors' own
+ * imagery keeps the tiles on-subject (stock photos kept mis-representing
+ * categories) and means the tiles reflect the actual catalogue.
+ */
+export async function categorySummary(slug: string, city?: string): Promise<CategorySummary> {
+  try {
+    const supabase = requireSupabase()
+    let req = supabase
+      .from('vendors')
+      .select('image,images', { count: 'exact' })
+      .eq('status', 'active')
+      .contains('category', [slug])
+      .not('image', 'is', null)
+      .order('is_trending', { ascending: false, nullsFirst: false })
+    if (city) req = req.eq('location', city)
+
+    // Vendors belong to several categories at once, so the top-ranked row is
+    // often the same for neighbouring tiles. Pull a small window and pick a
+    // stable offset per slug so each tile shows a different venue.
+    const { data, error, count } = await req.limit(24)
+    if (error) throw error
+    const rows = (data as { image: string | null; images: string[] | null }[]) ?? []
+    if (rows.length === 0) return { count: count ?? 0, image: null }
+
+    const hash = [...slug].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7)
+    const row = rows[hash % rows.length]
+    return { count: count ?? 0, image: row?.image ?? row?.images?.[0] ?? null }
+  } catch {
+    return { count: 0, image: null }
+  }
+}
+
 /** The signed-in vendor's own record, matched by their auth email. */
 export async function getMyVendor(email: string): Promise<Vendor | null> {
   try {
