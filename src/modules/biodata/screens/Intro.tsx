@@ -1,5 +1,7 @@
 import { TEMPLATES } from '../templates/props'
+import type { BiodataDraft, TemplateId } from '../types'
 import { btn } from '../ui'
+import { TemplateStylePreview } from '../components/TemplateStylePreview'
 
 /**
  * Landing step. Its job is to make the offer legible in one screen — free, no
@@ -31,12 +33,21 @@ function Check() {
 
 interface IntroProps {
   hasDraft: boolean
+  draft: BiodataDraft
   onStart: () => void
   onResume: () => void
   onDiscard: () => void
+  onSelectTemplate: (template: TemplateId) => void
 }
 
-export function Intro({ hasDraft, onStart, onResume, onDiscard }: IntroProps) {
+export function Intro({
+  hasDraft,
+  draft,
+  onStart,
+  onResume,
+  onDiscard,
+  onSelectTemplate,
+}: IntroProps) {
   return (
     <div className="space-y-7">
       <header className="space-y-3">
@@ -92,27 +103,45 @@ export function Intro({ hasDraft, onStart, onResume, onDiscard }: IntroProps) {
           {TEMPLATES.length} designs to choose from
         </h2>
         <div className="grid grid-cols-3 gap-2.5">
-          {TEMPLATES.map((t) => (
-            <div
-              key={t.id}
-              className="overflow-hidden rounded-[var(--radius-field)] border border-[var(--color-line)]"
-            >
-              <div
-                className="flex h-20 flex-col justify-center gap-1.5 px-2.5"
-                style={{ backgroundColor: t.swatch[1] }}
-                aria-hidden
+          {TEMPLATES.map((t) => {
+            const selected = draft.template === t.id
+            return (
+              <button
+                key={t.id}
+                type="button"
+                aria-label={`Select ${t.name} biodata format`}
+                aria-pressed={selected}
+                onClick={() => onSelectTemplate(t.id)}
+                className={`relative overflow-hidden rounded-[var(--radius-field)] border bg-white text-left transition-[border-color,box-shadow,transform] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 ${
+                  selected
+                    ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/20'
+                    : 'border-[var(--color-line)] hover:border-[var(--color-primary)]/55'
+                }`}
               >
-                <span className="block h-1.5 w-9 rounded-full" style={{ backgroundColor: t.swatch[0] }} />
-                <span className="block h-1 w-full rounded-full bg-black/12" />
-                <span className="block h-1 w-4/5 rounded-full bg-black/10" />
-                <span className="block h-1 w-2/3 rounded-full bg-black/10" />
-              </div>
-              <p className="px-2 py-1.5 text-[11px] leading-tight font-semibold text-[var(--color-ink)]">
-                {t.name}
-              </p>
-            </div>
-          ))}
+                {selected ? (
+                  <span className="absolute top-1.5 right-1.5 z-10 rounded-full bg-[var(--color-primary)] px-1.5 py-0.5 text-[9px] font-bold text-white">
+                    Selected
+                  </span>
+                ) : null}
+                <div
+                  className="flex h-20 flex-col justify-center gap-1.5 px-2.5"
+                  style={{ backgroundColor: t.swatch[1] }}
+                  aria-hidden
+                >
+                  <span className="block h-1.5 w-9 rounded-full" style={{ backgroundColor: t.swatch[0] }} />
+                  <span className="block h-1 w-full rounded-full bg-black/12" />
+                  <span className="block h-1 w-4/5 rounded-full bg-black/10" />
+                  <span className="block h-1 w-2/3 rounded-full bg-black/10" />
+                </div>
+                <p className="px-2 py-1.5 text-[11px] leading-tight font-semibold text-[var(--color-ink)]">
+                  {t.name}
+                </p>
+                <span className="sr-only">{t.description}</span>
+              </button>
+            )
+          })}
         </div>
+        <TemplateStylePreview draft={draft} />
       </section>
     </div>
   )

@@ -64,9 +64,11 @@ export function BiodataMaker() {
     return (
       <Intro
         hasDraft={resumable}
+        draft={state.draft}
         onStart={start}
         onResume={() => setStage('form')}
         onDiscard={discard}
+        onSelectTemplate={state.setTemplate}
       />
     )
   }
