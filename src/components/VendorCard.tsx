@@ -29,6 +29,7 @@ export function VendorCard({ vendor, index }: { vendor: Vendor; index?: number }
   const fav = isFavourite(vendor.id)
   const price = platePrice(vendor)
   const seating = vendor.amenities.seatingCapacity
+  const floating = vendor.amenities.floatingCapacity
   const parking = vendor.amenities.parkingCapacity
 
   return (
@@ -103,11 +104,16 @@ export function VendorCard({ vendor, index }: { vendor: Vendor; index?: number }
           </p>
         )}
 
-        {(seating || parking) && (
+        {(seating || floating || parking || vendor.amenities.bridalRoom) && (
           <div className="mt-2.5 flex flex-wrap gap-2">
             {seating && (
               <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-field)] bg-surface-2 px-2.5 py-1.5 text-xs text-ink-soft">
-                <Users className="h-3.5 w-3.5" aria-hidden /> {seating} guests
+                <Users className="h-3.5 w-3.5" aria-hidden /> {seating} seated
+              </span>
+            )}
+            {floating && (
+              <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-field)] bg-surface-2 px-2.5 py-1.5 text-xs text-ink-soft">
+                <Users className="h-3.5 w-3.5" aria-hidden /> {floating} floating
               </span>
             )}
             {vendor.amenities.bridalRoom && (

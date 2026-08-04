@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The app talks to exactly two https origins (the site and Supabase), so plain
+  HTTP is refused outright rather than merely discouraged. This also blocks the
+  downgrade half of a captive-portal or hostile-Wi-Fi interception attempt.
+
+  User-added CAs are deliberately not trusted: nothing here needs a corporate
+  proxy, and trusting them would let any device-installed certificate read the
+  session token.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

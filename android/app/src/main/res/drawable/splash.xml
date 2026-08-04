@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Window background for the launch theme: what Android draws in the moment
+  between tapping the icon and the activity existing. AppChrome then holds an
+  identical-looking overlay in place until the site has actually loaded, so the
+  two read as one continuous splash rather than a flash of white.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/splashBackground" />
+    <item
+        android:width="128dp"
+        android:height="128dp"
+        android:drawable="@drawable/ic_brand_mark"
+        android:gravity="center" />
+</layer-list>

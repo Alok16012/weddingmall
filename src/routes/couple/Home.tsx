@@ -5,7 +5,7 @@ import { HOME_CATEGORIES } from '@/types/domain'
 import { listVendors, listTrending } from '@/services/vendors'
 import { listBlogs, listPopularCities } from '@/services/content'
 import { useCity } from '@/hooks/useCity'
-import { LogoMark } from '@/components/Brand'
+import { LogoMark, Wordmark } from '@/components/Brand'
 import { VendorRow } from '@/components/VendorRow'
 import { VendorCard } from '@/components/VendorCard'
 import { VendorCardSkeleton, Skeleton, ErrorState } from '@/components/ui/states'
@@ -32,17 +32,22 @@ export default function Home() {
       {/* ---- Brand header block: the search widget floats over its lower edge ---- */}
       <div className="header-block relative px-4 pb-16 pt-3 text-white">
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-2">
-            <LogoMark className="h-7 w-7 brightness-0 invert" />
-            <span className="text-lg font-bold tracking-tight">WeddingMall</span>
+          {/* The brand keeps its width and the city label gives way: a long name
+              like Thiruvananthapuram truncates rather than shunting the wordmark
+              off the edge of a 320px screen. The wordmark still steps down a
+              size below 360px, where the full name needs more room than is
+              left over. */}
+          <span className="inline-flex shrink-0 items-center gap-2">
+            <LogoMark className="h-7 w-7 shrink-0 brightness-0 invert" />
+            <Wordmark className="text-[15px] font-bold min-[360px]:text-[17px]" />
           </span>
           <Link
             to="/city"
-            className="tap flex items-center gap-1 rounded-[var(--radius-field)] bg-white/20 px-3 py-1.5 text-sm font-semibold backdrop-blur"
+            className="tap flex min-w-0 items-center gap-1 rounded-[var(--radius-field)] bg-white/20 px-2.5 py-1.5 text-[13px] font-semibold backdrop-blur min-[360px]:px-3 min-[360px]:text-sm"
           >
-            <MapPin className="h-4 w-4" aria-hidden />
-            {city ?? 'All India'}
-            <ChevronDown className="h-4 w-4 opacity-80" aria-hidden />
+            <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+            <span className="truncate">{city ?? 'All India'}</span>
+            <ChevronDown className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
           </Link>
         </div>
 
@@ -69,7 +74,9 @@ export default function Home() {
       <div className="mt-6 space-y-7">
         {/* Categories */}
         <section>
-          <SectionHead title="Wedding Services" to="/explore" />
+          {/* "View all" opens the rest of the SERVICES, not a vendor list —
+              only eight of the twenty categories fit in the grid below. */}
+          <SectionHead title="Wedding Services" to="/services" />
           <div className="grid grid-cols-4 gap-x-2 gap-y-4 px-4 pt-3">
             {HOME_CATEGORIES.map((slug) => (
               <CategoryTile key={slug} slug={slug} city={city} />

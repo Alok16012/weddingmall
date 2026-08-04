@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Share2, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { BRAND_NAME } from './Brand'
 
 /** Full-screen gallery viewer — counter, prev/next, thumbnails, share (spec C-09). */
 export interface GalleryMedia {
@@ -46,7 +47,7 @@ export function GalleryLightbox({
   async function share() {
     const url = window.location.href
     try {
-      if (navigator.share) await navigator.share({ title: title ?? 'WeddingMall', url })
+      if (navigator.share) await navigator.share({ title: title ?? BRAND_NAME, url })
       else await navigator.clipboard.writeText(url)
     } catch {
       /* user dismissed share sheet — no-op */

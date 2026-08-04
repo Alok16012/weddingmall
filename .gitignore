@@ -21,8 +21,23 @@ dist-ssr
 coverage
 
 # Capacitor / Android
-android/
+# The Android project itself IS tracked: it carries the launcher icons, splash,
+# ExternalLinks.java and the release signing wiring, none of which `cap add
+# android` can regenerate. Only build output, machine-local paths and anything
+# key-shaped stays out.
 .gradle/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/app/release/
+# Regenerated on every `cap sync` from dist/.
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+# Signing material never belongs in the repo — it lives in ~/.weddingmall/.
+*.jks
+*.keystore
+keystore.properties
 ios/
 
 # Editor directories and files

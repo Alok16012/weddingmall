@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">WeddingMall.Online</string>
+    <string name="title_activity_main">WeddingMall.Online</string>
+    <string name="package_name">online.weddingmall.app</string>
+    <string name="custom_url_scheme">online.weddingmall.app</string>
+
+    <!-- Offline screen -->
+    <string name="offline_title">You\'re offline</string>
+    <string name="offline_message">Check your internet connection and try again — you\'ll stay signed in.</string>
+    <string name="offline_retry">Retry</string>
+    <string name="offline_still_offline">Still no connection</string>
+
+    <!-- Downloads -->
+    <string name="download_started">Downloading %1$s…</string>
+    <string name="download_saved">Saved to Downloads: %1$s</string>
+    <string name="download_failed">Download failed. Please try again.</string>
+    <string name="download_permission_needed">Allow storage access to save the file.</string>
+
+    <!-- External links -->
+    <string name="external_no_app">No app on this device can open that link.</string>
+
+    <string name="loading">Loading…</string>
+</resources>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Check, Globe2, MapPin, Search } from 'lucide-react'
+import { Check, ChevronDown, Globe2, MapPin, Search } from 'lucide-react'
 import { listLocations, listPopularCities } from '@/services/content'
 import { useCity } from '@/hooks/useCity'
 import { cn } from '@/lib/cn'
@@ -12,19 +12,23 @@ export default function CitySelector() {
   const navigate = useNavigate()
   const { city, setCity } = useCity()
   const [q, setQ] = useState('')
+  const [openState, setOpenState] = useState<string | null>(null)
 
   const popular = useQuery({ queryKey: ['popular-cities'], queryFn: listPopularCities })
   const all = useQuery({ queryKey: ['locations'], queryFn: listLocations })
 
   const grouped = useMemo(() => {
+    const needle = q.trim().toLowerCase()
     const rows = (all.data ?? []).filter((l) =>
-      q ? `${l.city} ${l.state}`.toLowerCase().includes(q.toLowerCase()) : true,
+      needle ? `${l.city} ${l.state}`.toLowerCase().includes(needle) : true,
     )
     return rows.reduce<Record<string, string[]>>((acc, r) => {
       ;(acc[r.state] ??= []).push(r.city)
       return acc
     }, {})
   }, [all.data, q])
+
+  const searching = q.trim() !== ''
 
   function choose(next: string | null) {
     setCity(next)
@@ -81,29 +85,61 @@ export default function CitySelector() {
           </section>
         )}
 
+        {/* Every state and union territory. Collapsed by default — the full list
+            runs to ~1,000 cities, and rendering all of them at once made this
+            screen janky to scroll on a mid-range phone. Searching expands the
+            matches instead, which is how anyone finds a city anyway. */}
         <section className="mt-5">
-          <h2 className="mb-2 text-lg text-ink">All Locations</h2>
+          <h2 className="mb-2 text-lg text-ink">
+            {searching ? 'Search Results' : 'All Locations'}
+          </h2>
           {all.isLoading && <Skeleton className="h-40 w-full" />}
           {all.isError && <ErrorState onRetry={() => all.refetch()} />}
-          <div className="space-y-4">
-            {Object.entries(grouped).map(([state, cities]) => (
-              <div key={state}>
-                <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-muted">{state}</p>
-                <div className="divide-y divide-line overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
-                  {cities.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => choose(c)}
-                      className="tap flex w-full items-center gap-2.5 px-4 py-3 text-left hover:bg-surface-2"
-                    >
-                      <MapPin className="h-4 w-4 text-muted" aria-hidden />
-                      <span className="flex-1 text-ink">{c}</span>
-                      {city === c && <Check className="h-5 w-5 text-[var(--color-primary)]" aria-hidden />}
-                    </button>
-                  ))}
+          {!all.isLoading && searching && Object.keys(grouped).length === 0 && (
+            <p className="rounded-[var(--radius-card)] border border-line bg-surface px-4 py-6 text-center text-sm text-muted">
+              No city matches “{q.trim()}”.
+            </p>
+          )}
+          <div className="space-y-2">
+            {Object.entries(grouped).map(([state, cities]) => {
+              const open = searching || openState === state
+              return (
+                <div
+                  key={state}
+                  className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface"
+                >
+                  <button
+                    onClick={() => setOpenState(open && !searching ? null : state)}
+                    aria-expanded={open}
+                    className="tap flex w-full items-center gap-2 px-4 py-3 text-left"
+                  >
+                    <span className="flex-1 text-[15px] font-semibold text-ink">{state}</span>
+                    <span className="tnum text-xs text-muted">{cities.length}</span>
+                    <ChevronDown
+                      className={cn('h-4 w-4 text-muted transition-transform', open && 'rotate-180')}
+                      aria-hidden
+                    />
+                  </button>
+                  {open && (
+                    <div className="divide-y divide-line border-t border-line">
+                      {cities.map((c) => (
+                        <button
+                          key={c}
+                          onClick={() => choose(c)}
+                          className="tap flex w-full items-center gap-2.5 px-4 py-3 text-left hover:bg-surface-2"
+                        >
+                          <MapPin className="h-4 w-4 text-muted" aria-hidden />
+                          <span className="flex-1 text-ink">{c}</span>
+                          {city === c && (
+                            <Check className="h-5 w-5 text-[var(--color-primary)]" aria-hidden />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </section>
       </div>

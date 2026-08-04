@@ -40,6 +40,8 @@ export type ServiceErrorCode =
   | 'not_found'
   | 'denied'
   | 'validation'
+  /** The backend does not offer this capability at all (e.g. no SMS provider). */
+  | 'unsupported'
   | 'unknown'
 
 /** Centralised, user-safe error type. Never carries secrets or raw tokens. */

@@ -31,7 +31,15 @@ export interface VendorAmenities {
   noOfRooms?: string
   noOfACRooms?: string
   parkingCapacity?: string
+  /** Guests seated for a sit-down meal. */
   seatingCapacity?: string
+  /**
+   * Guests the venue holds standing, for a reception where people circulate —
+   * always the larger of the two numbers, and the one couples plan a baraat or
+   * a cocktail evening around. Written by the vendor form as free text
+   * ("1200", "800-1500"), like every other capacity field here.
+   */
+  floatingCapacity?: string
 }
 
 /** `vendors.payment_policies` (jsonb). */
@@ -174,6 +182,35 @@ export const HOME_CATEGORIES: string[] = [
   'photographers',
   'mehendi-artists',
   'planning-decor',
+]
+
+/**
+ * Every category, grouped the way a couple thinks about the wedding rather than
+ * the way the slugs sort. This drives the "Wedding Services" screen, which is
+ * what "View all" opens — Home only has room for eight of the twenty.
+ */
+export const CATEGORY_GROUPS: { title: string; slugs: string[] }[] = [
+  {
+    title: 'Venues',
+    slugs: [
+      'wedding-venues',
+      'banquet-halls',
+      'marriage-garden-lawns',
+      'wedding-resorts',
+      'small-function-halls',
+      'budget-halls',
+      '3-star-hotels',
+      'destination-wedding',
+    ],
+  },
+  { title: 'Makeup & Beauty', slugs: ['makeup-artists', 'bridal-makeup', 'family-makeup'] },
+  {
+    title: 'Photography',
+    slugs: ['photographers', 'wedding-photographers', 'pre-wedding-photographers'],
+  },
+  { title: 'Mehendi', slugs: ['mehendi-artists', 'bridal-mehendi', 'family-mehendi'] },
+  { title: 'Wedding Wear', slugs: ['bridal-wear', 'family-wear'] },
+  { title: 'Planning & Decor', slugs: ['planning-decor'] },
 ]
 
 export function categoryLabel(slug: string): string {

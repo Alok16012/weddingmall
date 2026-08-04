@@ -24,8 +24,12 @@ const FLAGS: { key: keyof Vendor['amenities']; label: string; icon?: typeof Wifi
   { key: 'wifi', label: 'Wi-Fi', icon: Wifi },
 ]
 
+/**
+ * Seating and floating capacity are deliberately not in this list — they get
+ * their own pair of cards above it, because they are the two numbers a couple
+ * actually shortlists a venue on.
+ */
 const COUNTS: { key: keyof Vendor['amenities']; label: string }[] = [
-  { key: 'seatingCapacity', label: 'Seating capacity' },
   { key: 'parkingCapacity', label: 'Parking capacity' },
   { key: 'noOfHalls', label: 'Halls' },
   { key: 'noOfLawns', label: 'Lawns' },
@@ -81,6 +85,8 @@ export default function VendorDetail() {
     return typeof v === 'string' && v.trim() !== ''
   })
   const flags = FLAGS.filter((f) => vendor.amenities[f.key] === true)
+  const seating = vendor.amenities.seatingCapacity?.trim()
+  const floating = vendor.amenities.floatingCapacity?.trim()
   const policies = POLICIES.filter((p) => {
     const v = vendor.paymentPolicies[p.key]
     return typeof v === 'string' && v.trim() !== ''
@@ -193,9 +199,31 @@ export default function VendorDetail() {
         )}
 
         {/* Capacity & facilities */}
-        {(counts.length > 0 || flags.length > 0) && (
+        {(seating || floating || counts.length > 0 || flags.length > 0) && (
           <section>
             <h2 className="mb-2 text-xl text-ink">Capacity &amp; Facilities</h2>
+            {(seating || floating) && (
+              <div className="mb-2.5 grid grid-cols-2 gap-2.5">
+                {seating && (
+                  <div className="rounded-[var(--radius-field)] border border-[var(--color-primary)]/25 bg-[var(--color-primary)]/6 p-3">
+                    <div className="flex items-center gap-1.5 text-xs text-muted">
+                      <Users className="h-3.5 w-3.5" aria-hidden /> Seating capacity
+                    </div>
+                    <div className="tnum mt-0.5 text-lg font-bold text-ink">{seating}</div>
+                    <p className="mt-0.5 text-[11px] leading-tight text-muted">Guests seated</p>
+                  </div>
+                )}
+                {floating && (
+                  <div className="rounded-[var(--radius-field)] border border-[var(--color-primary)]/25 bg-[var(--color-primary)]/6 p-3">
+                    <div className="flex items-center gap-1.5 text-xs text-muted">
+                      <Users className="h-3.5 w-3.5" aria-hidden /> Floating capacity
+                    </div>
+                    <div className="tnum mt-0.5 text-lg font-bold text-ink">{floating}</div>
+                    <p className="mt-0.5 text-[11px] leading-tight text-muted">Guests standing</p>
+                  </div>
+                )}
+              </div>
+            )}
             {counts.length > 0 && (
               <div className="grid grid-cols-2 gap-2.5">
                 {counts.map((c) => (

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Compass, Heart, Home, Menu, Store } from 'lucide-react'
+import { Compass, FileText, Heart, Home, Menu, Store } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { cn } from '@/lib/cn'
 import { useFavourites } from '@/hooks/useFavourites'
@@ -20,9 +20,11 @@ export function BottomNav({ isVendor }: { isVendor?: boolean }) {
     { to: '/', label: 'Home', icon: Home, end: true },
     { to: '/explore', label: 'Explore', icon: Compass },
     { to: '/favourites', label: 'Shortlist', icon: Heart, badge: count },
+    // Five tabs is the most that fits legibly in the 428px shell, so vendors
+    // get their workspace here and reach the biodata maker from More instead.
     ...(isVendor
       ? [{ to: '/vendor', label: 'Business', icon: Store } as Tab]
-      : []),
+      : [{ to: '/biodata', label: 'Biodata', icon: FileText } as Tab]),
     { to: '/more', label: 'More', icon: Menu },
   ]
 

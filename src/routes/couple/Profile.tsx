@@ -1,9 +1,12 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
-  BookOpen, Briefcase, ChevronRight, FileText, Heart, LogOut, MapPin, Shield, Store,
+  BookOpen, Briefcase, ChevronRight, FileText, Heart, LogOut, MapPin, Repeat, Shield, ShieldCheck,
+  Store, UserSquare,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useSession } from '@/auth/SessionContext'
+import { useEntry } from '@/auth/entry'
+import { isNativeApp } from '@/lib/platform'
 import { useCity } from '@/hooks/useCity'
 import { useFavourites } from '@/hooks/useFavourites'
 import { Logo, BlinksAICredit } from '@/components/Brand'
@@ -14,6 +17,19 @@ export default function Profile() {
   const { isVendor, email, signOut } = useSession()
   const { city } = useCity()
   const { count } = useFavourites()
+  const { entry, reset } = useEntry()
+  const navigate = useNavigate()
+
+  /** Back to the Guest / Vendor choice, ending any session along the way. */
+  async function switchLogin() {
+    reset()
+    try {
+      await signOut()
+    } catch {
+      /* Nothing to sign out of — the guest path never had a session. */
+    }
+    navigate('/welcome')
+  }
 
   return (
     <div className="pb-6">
@@ -38,9 +54,17 @@ export default function Profile() {
         ) : (
           <section className="rounded-[var(--radius-card)] border border-line bg-surface-2 p-4">
             <Logo className="mb-2" />
-            <p className="text-sm text-ink-soft">
-              Browse and enquire freely — no account needed. Are you a wedding business?
-            </p>
+            {entry?.phoneVerified && entry.phone ? (
+              <p className="flex items-center gap-1.5 text-sm text-ink-soft">
+                <ShieldCheck className="h-4 w-4 shrink-0 text-success" aria-hidden />
+                Browsing as guest ·{' '}
+                <span className="tnum font-semibold text-ink">+91 {entry.phone}</span>
+              </p>
+            ) : (
+              <p className="text-sm text-ink-soft">
+                Browse and enquire freely — no account needed. Are you a wedding business?
+              </p>
+            )}
             <Link
               to="/vendor/login"
               className={buttonClasses({ variant: 'outline', fullWidth: true, className: 'mt-3' })}
@@ -54,6 +78,12 @@ export default function Profile() {
         <section className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
           <Row to="/city" icon={<MapPin className="h-5 w-5" />} label="Location" value={city ?? 'All India'} />
           <Row to="/favourites" icon={<Heart className="h-5 w-5" />} label="Shortlist" value={count ? `${count}` : '—'} />
+          <Row
+            to="/biodata"
+            icon={<UserSquare className="h-5 w-5" />}
+            label="Free Biodata maker"
+            value="Free"
+          />
           <Row to="/blogs" icon={<BookOpen className="h-5 w-5" />} label="Wedding ideas" />
           <Row to="/careers" icon={<Briefcase className="h-5 w-5" />} label="Careers" />
         </section>
@@ -67,6 +97,18 @@ export default function Profile() {
         {isVendor && (
           <Button fullWidth variant="outline" leftIcon={<LogOut className="h-4 w-4" />} onClick={signOut}>
             Sign out
+          </Button>
+        )}
+
+        {/* Only the installed app has a Guest / Vendor entry screen to go back to. */}
+        {isNativeApp() && (
+          <Button
+            fullWidth
+            variant="ghost"
+            leftIcon={<Repeat className="h-4 w-4" />}
+            onClick={() => void switchLogin()}
+          >
+            Switch login
           </Button>
         )}
 

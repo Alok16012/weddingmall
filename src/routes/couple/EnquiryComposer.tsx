@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { CalendarDays, Check, Info, Phone, User } from 'lucide-react'
 import { getVendor } from '@/services/vendors'
 import { createLead, isValidIndianMobile } from '@/services/leads'
+import { getEntry } from '@/auth/entry'
 import { ServiceError } from '@/services/supabase/client'
 import { Button, buttonClasses } from '@/components/ui/Button'
 import { ScreenHeader } from '@/components/layout/ScreenHeader'
@@ -20,7 +21,9 @@ export default function EnquiryComposer() {
   })
 
   const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
+  // Prefilled from the number verified at first launch — the one thing that
+  // verification buys the guest, and the field they'd otherwise retype every time.
+  const [phone, setPhone] = useState(() => getEntry()?.phone ?? '')
   const [date, setDate] = useState('')
   const [errors, setErrors] = useState<{ name?: string; phone?: string; date?: string }>({})
 

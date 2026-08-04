@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Mirrors the web design tokens in src/index.css so the native chrome (status
+  bar, splash, offline screen) reads as the same product as the page inside the
+  WebView. Keep the two in step when the palette changes.
+-->
+<resources>
+    <!-- CSS: color-primary, color-primary-dark, color-accent -->
+    <color name="colorPrimary">#FF5A52</color>
+    <color name="colorPrimaryDark">#F0463D</color>
+    <color name="colorAccent">#FF9B2F</color>
+
+    <!-- The web header is a coral gradient, so the status bar carries its top
+         stop; the bottom tab bar is white, so the navigation bar matches that. -->
+    <color name="statusBar">#FF5A52</color>
+    <color name="navigationBar">#FFFFFF</color>
+
+    <!-- CSS: color-surface, color-ink, color-muted -->
+    <color name="splashBackground">#FFFFFF</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="ink">#19191D</color>
+    <color name="muted">#63636B</color>
+</resources>

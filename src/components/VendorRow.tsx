@@ -23,6 +23,7 @@ export function VendorRow({ vendor, index }: { vendor: Vendor; index?: number })
   const fav = isFavourite(vendor.id)
   const price = platePrice(vendor)
   const seating = vendor.amenities.seatingCapacity
+  const floating = vendor.amenities.floatingCapacity
 
   return (
     <article
@@ -80,7 +81,12 @@ export function VendorRow({ vendor, index }: { vendor: Vendor; index?: number })
             )}
             {seating && (
               <span className="inline-flex items-center gap-1 rounded bg-surface-2 px-1.5 py-0.5 text-[11px] text-ink-soft">
-                <Users className="h-2.5 w-2.5" aria-hidden /> {seating}
+                <Users className="h-2.5 w-2.5" aria-hidden /> {seating} seated
+              </span>
+            )}
+            {floating && (
+              <span className="inline-flex items-center gap-1 rounded bg-surface-2 px-1.5 py-0.5 text-[11px] text-ink-soft">
+                <Users className="h-2.5 w-2.5" aria-hidden /> {floating} floating
               </span>
             )}
           </div>

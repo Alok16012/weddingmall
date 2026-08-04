@@ -10,6 +10,11 @@ import * as authService from '@/services/auth'
  * There is no `profiles` table and no customer accounts — the website captures
  * enquiries anonymously. So the app is GUEST-FIRST: everyone can browse and
  * enquire, and only vendors sign in (email + password) to see their leads.
+ *
+ * A guest who verifies their mobile number also ends up with an auth session,
+ * so "signed in" is not the same question as "is a vendor" — every vendor
+ * account on this project is an email account, and that is what `isVendor`
+ * tests. A phone-only session must never unlock the vendor dashboard.
  */
 interface SessionValue {
   /** Supabase auth user email, when a vendor is signed in. */
@@ -65,7 +70,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const value = useMemo<SessionValue>(
     () => ({
       email: session?.user?.email ?? null,
-      isVendor: !!session?.user,
+      isVendor: !!session?.user?.email,
       initializing,
       signIn,
       sendPasswordReset,

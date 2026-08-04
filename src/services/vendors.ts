@@ -1,10 +1,16 @@
 import type { Vendor, VendorAmenities, VendorPaymentPolicies, VendorStatus } from '@/types/domain'
 import { requireSupabase, toServiceError } from './supabase/client'
 
-/** Columns selected for list views (keeps payloads small). */
+/**
+ * Columns selected for list views (keeps payloads small).
+ *
+ * `amenities` is small jsonb and earns its place: the cards and rows show
+ * seating and floating capacity, which is the first thing anyone comparing
+ * venues looks for. Without it those chips silently never rendered.
+ */
 const LIST_COLS =
-  'id,name,category,location,price,price_unit,veg_price,non_veg_price,description,images,image,rating,status,badge,is_trending,created_at'
-const DETAIL_COLS = `${LIST_COLS},email,amenities,payment_policies`
+  'id,name,category,location,price,price_unit,veg_price,non_veg_price,description,images,image,rating,status,badge,is_trending,amenities,created_at'
+const DETAIL_COLS = `${LIST_COLS},email,payment_policies`
 
 /** Raw row shape as returned by PostgREST (snake_case). */
 interface VendorRow {
@@ -222,6 +228,59 @@ export async function categorySummary(slug: string, city?: string): Promise<Cate
     return { count: count ?? 0, image: row?.image ?? row?.images?.[0] ?? null }
   } catch {
     return { count: 0, image: null }
+  }
+}
+
+/**
+ * Count + cover photo for EVERY category in one round trip.
+ *
+ * The Services screen shows all twenty categories; calling `categorySummary`
+ * per tile would fire twenty requests on mount. Category membership lives in a
+ * text[] on the vendor, so one narrow select over the active rows (~200, two
+ * columns) is both smaller and faster than twenty counting queries.
+ */
+export async function categoryDirectory(city?: string): Promise<Record<string, CategorySummary>> {
+  try {
+    const supabase = requireSupabase()
+    let req = supabase.from('vendors').select('category,image,images,is_trending').eq('status', 'active')
+    if (city) req = req.eq('location', city)
+
+    const { data, error } = await req
+    if (error) throw error
+
+    const rows =
+      (data as { category: string[] | null; image: string | null; images: string[] | null; is_trending: boolean | null }[]) ?? []
+
+    const out: Record<string, CategorySummary> = {}
+    const covers: Record<string, string[]> = {}
+    for (const row of rows) {
+      const cover = row.image ?? row.images?.[0] ?? null
+      for (const slug of row.category ?? []) {
+        const entry = (out[slug] ??= { count: 0, image: null })
+        entry.count += 1
+        if (!cover) continue
+        // A trending vendor leads the shortlist; the rest queue behind it.
+        const queue = (covers[slug] ??= [])
+        if (queue.length >= 8) continue
+        if (row.is_trending) queue.unshift(cover)
+        else queue.push(cover)
+      }
+    }
+
+    // Vendors list themselves under several categories at once, so the same
+    // photo would otherwise head half the venue rows. Each category takes the
+    // first cover nobody above it has claimed, which is enough to make the
+    // directory look like a directory rather than one venue repeated.
+    const used = new Set<string>()
+    for (const [slug, entry] of Object.entries(out)) {
+      const queue = covers[slug] ?? []
+      const pick = queue.find((c) => !used.has(c)) ?? queue[0] ?? null
+      if (pick) used.add(pick)
+      entry.image = pick
+    }
+    return out
+  } catch (err) {
+    throw toServiceError(err)
   }
 }
 

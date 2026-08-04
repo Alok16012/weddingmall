@@ -1,0 +1,117 @@
+apply plugin: 'com.android.application'
+
+/**
+ * Release signing.
+ *
+ * Nothing about the upload key lives in this repository — not the keystore, not
+ * its passwords, not a path that would reveal where it is. Gradle looks for a
+ * properties file *outside* the checkout, at $WM_SIGNING_PROPERTIES or
+ * ~/.weddingmall/keystore.properties, and configures release signing only if it
+ * finds one. Without it `assembleRelease` still runs and produces an unsigned
+ * APK, so a clone with no key is never blocked from building.
+ *
+ * See android/README.md for how to create the keystore.
+ */
+def signingProps = new Properties()
+def signingPath = System.getenv('WM_SIGNING_PROPERTIES')
+    ?: "${System.getProperty('user.home')}/.weddingmall/keystore.properties"
+def signingFile = new File(signingPath)
+if (signingFile.exists()) {
+    signingFile.withInputStream { signingProps.load(it) }
+}
+def canSignRelease = signingProps['storeFile'] != null && new File(signingProps['storeFile']).exists()
+if (!canSignRelease) {
+    logger.lifecycle("No release keystore at ${signingPath}; release builds will be unsigned.")
+}
+
+android {
+    namespace = "online.weddingmall.app"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "online.weddingmall.app"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        // Bumped for the release carrying the new launcher icon/splash and the
+        // Guest / Vendor entry screen. Play rejects a re-upload at the same code.
+        versionCode 2
+        versionName "1.1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        if (canSignRelease) {
+            release {
+                storeFile new File(signingProps['storeFile'])
+                storePassword signingProps['storePassword']
+                keyAlias signingProps['keyAlias']
+                keyPassword signingProps['keyPassword']
+                // APK Signature Scheme v2 landed in Android 7.0 (API 24), which
+                // is this app's minimum, so every device that can install it can
+                // verify v2/v3. The old JAR-signing scheme buys nothing here —
+                // AGP omits it at minSdk 24 regardless of what is asked for.
+                enableV2Signing true
+                enableV3Signing true
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            debuggable false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (canSignRelease) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    packagingOptions {
+        // Nothing in the app reads them, and they are the usual accidental route
+        // for build-machine paths to end up in a shipped artifact.
+        exclude 'META-INF/*.version'
+        exclude 'kotlin/**'
+        exclude '**/*.kotlin_metadata'
+    }
+
+    lint {
+        // A release that would crash or leak is worth failing the build over.
+        abortOnError true
+        checkReleaseBuilds true
+        warningsAsErrors false
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

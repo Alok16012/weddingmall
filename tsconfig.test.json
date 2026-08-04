@@ -1,0 +1,14 @@
+{
+  /* Tests run in Node, so they may use `node:` built-ins. Keeping them in a
+     separate project is what stops those types leaking into `tsconfig.app.json`,
+     where a stray `process.env` or `Buffer` in browser code would typecheck. */
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "types": ["vite/client", "vitest/globals", "node"]
+  },
+  /* `extends` also carries the app project's `exclude`, which is exactly
+     these files — clear it. */
+  "exclude": [],
+  "include": ["src/**/__tests__/**/*", "src/test/**/*"]
+}
