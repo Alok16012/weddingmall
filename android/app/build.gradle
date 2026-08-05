@@ -31,10 +31,11 @@ android {
         applicationId "online.weddingmall.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // Bumped for the release carrying the new launcher icon/splash and the
-        // Guest / Vendor entry screen. Play rejects a re-upload at the same code.
-        versionCode 2
-        versionName "1.1.0"
+        // 1.2.0 is the first release that ships this project's own screens
+        // inside the package instead of loading the website into a WebView.
+        // Play rejects a re-upload at the same code.
+        versionCode 3
+        versionName "1.2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

@@ -1,27 +1,33 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 /**
- * Native wrappers for the live site.
+ * Native wrappers around this app's own build.
  *
- * `server.url` points the WebView at production rather than at a copy of the
- * built assets, so shipping a web deploy updates both the Android and iOS apps
- * without a store release. `webDir` still has to exist for the CLI, but nothing
- * in it is what the user actually sees.
+ * The WebView serves `webDir` from inside the package — the screens in `src/`
+ * are what ships, not the website. Vendor listings, enquiries and auth still
+ * come live from Supabase, so the catalogue is never stale; only the app's own
+ * screens need a store release to change.
  *
- * `androidScheme: 'https'` keeps the WebView origin on https, which is what
- * lets Supabase's session cookies and localStorage survive between launches.
+ * There is deliberately no `server.url`: pointing it at the website would put
+ * the website in the app instead, which is the arrangement this replaced.
+ *
+ * `androidScheme: 'https'` puts the bundle on the `https://localhost` origin,
+ * which is what lets Supabase's session survive between launches — a WebView
+ * treats `http:` origins as insecure and can drop their storage.
  */
 const config: CapacitorConfig = {
   appId: 'online.weddingmall.app',
   appName: 'WeddingMall.online',
   webDir: 'dist',
   android: {
-    // No cleartext anywhere: the site is https-only and so is Supabase.
+    // No cleartext anywhere: Supabase is https-only and so is everything else
+    // the app talks to.
     allowMixedContent: false,
     captureInput: true,
     webContentsDebuggingEnabled: false,
-    // Lets the site tell the wrapper apart from mobile Chrome — e.g. to drop the
-    // "get the app" banner, or to hide a Share button the WebView cannot honour.
+    // What `isNativeApp()` reads. The app-only surfaces — the Guest / Vendor
+    // entry gate, "Switch login" — key off this, and it also lets the code hide
+    // anything a WebView cannot honour, such as `navigator.share`.
     appendUserAgent: 'WeddingMallApp',
   },
   ios: {
@@ -30,12 +36,12 @@ const config: CapacitorConfig = {
     appendUserAgent: 'WeddingMallApp',
   },
   server: {
-    url: 'https://weddingmall.online',
     androidScheme: 'https',
-    // Only our own origin is treated as "inside" the app. Everything else —
-    // payment gateways, maps, WhatsApp — is handed to the system browser or
-    // the installed app by `ExternalLinks.java`.
-    allowNavigation: ['weddingmall.online', 'www.weddingmall.online'],
+    // The bundle's own origin is the only thing that loads in the WebView.
+    // Every outward link — the website, payment gateways, maps, WhatsApp — is
+    // handed to the system browser or the app that owns it, by Capacitor for
+    // https and by `ExternalLinks.java` for tel/mailto/upi/intent.
+    allowNavigation: [],
   },
 }
 

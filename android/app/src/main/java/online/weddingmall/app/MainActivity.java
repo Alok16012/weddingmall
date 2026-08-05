@@ -17,13 +17,14 @@ import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeActivity;
 
 /**
- * The whole app: a hardened WebView pointed at https://weddingmall.online, plus
- * the few things a browser tab cannot do for itself — a splash, an offline
- * screen, the hardware back button, and downloads.
+ * The whole app: a hardened WebView serving this project's own build out of the
+ * package, plus the few things a browser tab cannot do for itself — a splash, an
+ * offline screen, the hardware back button, and downloads.
  *
- * Nothing about the site is reimplemented here. Sessions, routing, the vendor
- * and admin panels and the biodata maker are all the same code the web serves,
- * which is what lets a web deploy update the app with no new release.
+ * Nothing about the screens is reimplemented here. Routing, sessions, the vendor
+ * dashboard and the biodata maker are the React code in `src/`, shipped inside
+ * the APK; only the vendor catalogue and enquiries come over the network, from
+ * Supabase.
  */
 public class MainActivity extends BridgeActivity {
 
@@ -70,9 +71,10 @@ public class MainActivity extends BridgeActivity {
     /**
      * Everything the WebView can do that this app has no use for.
      *
-     * The page is remote and trusted only in the sense that we serve it; denying
-     * local file and cross-origin file access means a redirect to somewhere
-     * unexpected still cannot read the app's own storage.
+     * The bundle ships with the app, but it renders vendor names, descriptions
+     * and photos that anyone with a vendor account can edit; denying local file
+     * and cross-origin file access means a redirect to somewhere unexpected
+     * still cannot read the app's own storage.
      */
     private static void harden(WebSettings settings) {
         settings.setAllowFileAccess(false);
