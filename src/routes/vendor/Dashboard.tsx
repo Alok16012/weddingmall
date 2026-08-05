@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button, buttonClasses } from '@/components/ui/Button'
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/states'
 import { LeadRow } from '@/components/LeadRow'
+import { ScreenHeader } from '@/components/layout/ScreenHeader'
 
 /**
  * Vendor workspace. Every number here comes from real rows — the vendor's own
@@ -31,7 +32,14 @@ export default function VendorDashboard() {
     enabled: !!vendor?.id,
   })
 
-  if (initializing) return <div className="p-4"><Skeleton className="h-32 w-full" /></div>
+  if (initializing) {
+    return (
+      <div>
+        <ScreenHeader title="Vendor workspace" />
+        <div className="p-4"><Skeleton className="h-32 w-full" /></div>
+      </div>
+    )
+  }
   if (!isVendor) return <Navigate to="/vendor/login" replace />
 
   const leads = leadsQ.data ?? []
@@ -39,19 +47,15 @@ export default function VendorDashboard() {
 
   return (
     <div className="pb-4">
-      <header className="flex items-start justify-between gap-3 px-4 py-4">
-        <div className="min-w-0">
-          <p className="text-sm text-muted">Vendor workspace</p>
-          <h1 className="truncate text-[1.6rem] text-ink">
-            {vendorQ.isLoading ? 'Loading…' : (vendor?.name ?? 'Your business')}
-          </h1>
-        </div>
-        {vendor && (
+      <ScreenHeader
+        title={vendorQ.isLoading ? 'Loading…' : (vendor?.name ?? 'Your business')}
+        subtitle="Vendor workspace"
+        right={vendor && (
           <Badge tone={vendor.status === 'active' ? 'success' : 'saffron'}>{vendor.status}</Badge>
         )}
-      </header>
+      />
 
-      <div className="space-y-5 px-4">
+      <div className="space-y-5 px-4 pt-4">
         {vendorQ.isLoading && <Skeleton className="h-24 w-full" />}
         {vendorQ.isError && <ErrorState onRetry={() => vendorQ.refetch()} />}
 
