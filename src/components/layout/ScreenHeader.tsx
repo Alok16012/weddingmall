@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
+import { BRAND_NAME, LogoMark, Wordmark } from '@/components/Brand'
 
 export function ScreenHeader({
   title,
@@ -25,6 +26,20 @@ export function ScreenHeader({
           <ChevronLeft className="h-6 w-6" aria-hidden />
         </button>
       )}
+      <Link
+        to="/"
+        aria-label={`${BRAND_NAME} home`}
+        className="tap inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full pr-1 hover:bg-surface-2"
+      >
+        <LogoMark className="h-7 w-7" />
+        <Wordmark
+          className={
+            right
+              ? 'hidden text-[13px] leading-none text-[var(--color-primary)] min-[540px]:inline'
+              : 'hidden text-[13px] leading-none text-[var(--color-primary)] min-[360px]:inline'
+          }
+        />
+      </Link>
       <div className="min-w-0 flex-1">
         <h1 className="truncate text-[1.375rem] font-semibold text-ink">{title}</h1>
         {subtitle && <p className="text-sm text-muted">{subtitle}</p>}

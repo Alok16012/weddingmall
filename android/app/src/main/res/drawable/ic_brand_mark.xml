@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  WeddingMall.Online butterfly mark, traced from src/assets/brand/weddingmall-mark.webp.
+  WeddingMall.online butterfly mark, traced from src/assets/brand/weddingmall-mark.webp.
 
   The source art is only 96x96, which upscales to mush at xxxhdpi (432px) and at
   the 512px the Play Store listing wants. Tracing it to a vector once means the

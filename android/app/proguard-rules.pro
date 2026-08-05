@@ -1,4 +1,4 @@
-# R8 rules for the WeddingMall.Online wrapper.
+# R8 rules for the WeddingMall.online wrapper.
 #
 # The app is small, but almost all of its surface is reached from outside Java —
 # from JavaScript in the WebView, or reflectively by Capacitor — so the usual

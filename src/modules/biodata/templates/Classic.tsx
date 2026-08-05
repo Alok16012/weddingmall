@@ -68,7 +68,7 @@ export function Classic({ sections, name, headline, photo }: TemplateProps) {
   )
 
   return (
-    <Document title={`${name} — Matrimonial Biodata`} author="WeddingMall.Online">
+    <Document title={`${name} — Matrimonial Biodata`} author="WeddingMall.online">
       <Page size="A4" style={s.page}>
         <View style={s.header}>
           {title}

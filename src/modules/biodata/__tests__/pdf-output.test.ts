@@ -16,7 +16,7 @@ import { EMPTY_DRAFT, type BiodataDraft, type TemplateId } from '../types'
  */
 
 const TEMPLATES: TemplateId[] = ['classic', 'floral', 'minimal']
-const FOOTER = 'Created free at WeddingMall.Online'
+const FOOTER = 'Created free at WeddingMall.online'
 
 const full: BiodataDraft = {
   ...EMPTY_DRAFT,

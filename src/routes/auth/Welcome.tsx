@@ -48,7 +48,7 @@ export default function Welcome() {
           onClick={asVendor}
           icon={<Store className="h-6 w-6" aria-hidden />}
           title="Vendor Login"
-          body="Registered a business on WeddingMall.Online? Sign in to manage your enquiries."
+          body="Registered a business on WeddingMall.online? Sign in to manage your enquiries."
         />
       </div>
 

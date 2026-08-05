@@ -1,4 +1,4 @@
--- WeddingMall.Online — all-India locations seed.
+-- WeddingMall.online — all-India locations seed.
 --
 -- Generated from src/data/india-locations.ts. The app already unions this list
 -- in at runtime, so it works without this file; run this only when you want the

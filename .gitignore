@@ -20,11 +20,10 @@ dist-ssr
 # Test / build output
 coverage
 
-# Capacitor / Android
-# The Android project itself IS tracked: it carries the launcher icons, splash,
-# ExternalLinks.java and the release signing wiring, none of which `cap add
-# android` can regenerate. Only build output, machine-local paths and anything
-# key-shaped stays out.
+# Capacitor native projects
+# Android and iOS are tracked because they carry launcher icons, splash assets,
+# native behaviour and release settings that `cap add` cannot regenerate.
+# Platform-level .gitignore files exclude generated web assets and build output.
 .gradle/
 android/.gradle/
 android/build/
@@ -38,7 +37,6 @@ android/app/src/main/assets/capacitor.config.json
 *.jks
 *.keystore
 keystore.properties
-ios/
 
 # Editor directories and files
 .vscode/*

@@ -95,7 +95,7 @@ function Ornament() {
 
 export function Floral({ sections, name, headline, photo }: TemplateProps) {
   return (
-    <Document title={`${name} — Matrimonial Biodata`} author="WeddingMall.Online">
+    <Document title={`${name} — Matrimonial Biodata`} author="WeddingMall.online">
       <Page size="A4" style={s.page}>
         <View style={s.frame} fixed />
         <View style={s.frameInner} fixed />

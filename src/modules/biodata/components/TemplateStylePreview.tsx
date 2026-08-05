@@ -126,7 +126,7 @@ function MinimalPreview({ draft, name, subtitle, rows }: PreviewContentProps) {
 function PreviewFooter({ colour = 'text-[#777078]' }: { colour?: string }) {
   return (
     <p className={`absolute right-5 bottom-3 left-5 text-[6px] tracking-wide ${colour}`}>
-      Created free at WeddingMall.Online
+      Created free at WeddingMall.online
     </p>
   )
 }
