@@ -30,6 +30,9 @@ android/build/
 android/app/build/
 android/local.properties
 android/app/release/
+# Copies of the signed APK/AAB, staged for handover. The bundle Play receives
+# is built from source; a binary in the repo would only ever be a stale one.
+release/
 # Regenerated on every `cap sync` from dist/.
 android/app/src/main/assets/public/
 android/app/src/main/assets/capacitor.config.json
