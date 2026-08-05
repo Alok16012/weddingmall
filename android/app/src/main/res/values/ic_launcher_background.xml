@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- Sampled from brand/weddingmall-online-logo.jpeg, so the adaptive icon's
+         background is the same orange the supplied logo sits on. -->
+    <color name="ic_launcher_background">#E15807</color>
 </resources>
