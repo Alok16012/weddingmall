@@ -7,7 +7,7 @@ changes need no macOS; only the final iOS signing/archive steps require Xcode.
 
 ```bash
 npm install @capacitor/core @capacitor/cli
-npx cap init "WeddingMall" "online.weddingmall.app" --web-dir=dist
+npx cap init "WeddingMall.online" "online.weddingmall.app" --web-dir=dist
 npm install @capacitor/android @capacitor/ios
 npx cap add android
 npx cap add ios          # macOS only
@@ -20,7 +20,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
   appId: 'online.weddingmall.app',
-  appName: 'WeddingMall',
+  appName: 'WeddingMall.online',
   webDir: 'dist',
   server: { androidScheme: 'https' },
   plugins: {
@@ -84,10 +84,11 @@ cd android && ./gradlew bundleRelease     # → app/build/outputs/bundle/release
 ```bash
 npx cap open ios
 ```
-- **Bundle ID:** `online.weddingmall.app` · **Display name:** WeddingMall
-- Icons/splash: `npx capacitor-assets generate --ios`
-- `Info.plist`: no camera/location/photo keys needed — do **not** add permission
-  strings you don't use; App Review rejects unjustified permissions.
+- **Bundle ID:** `online.weddingmall.app` · **Display name:** WeddingMall.online
+- Icon master: `brand/weddingmall-app-icon-1024.png`; the iOS app icon and launch
+  screen are already generated from it.
+- `Info.plist` includes camera and photo-library explanations because users can
+  choose a portrait for their biodata or vendor listing.
 - Associated Domains: `applinks:weddingmall.online` (for the reset deep link).
 - Pods: `cd ios/App && pod install`
 

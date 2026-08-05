@@ -1,19 +1,19 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 /**
- * Android wrapper for the live site.
+ * Native wrappers for the live site.
  *
  * `server.url` points the WebView at production rather than at a copy of the
- * built assets, so shipping a web deploy updates the app without a Play Store
- * release. `webDir` still has to exist for the CLI, but nothing in it is what
- * the user actually sees — see `android/README.md`.
+ * built assets, so shipping a web deploy updates both the Android and iOS apps
+ * without a store release. `webDir` still has to exist for the CLI, but nothing
+ * in it is what the user actually sees.
  *
  * `androidScheme: 'https'` keeps the WebView origin on https, which is what
  * lets Supabase's session cookies and localStorage survive between launches.
  */
 const config: CapacitorConfig = {
   appId: 'online.weddingmall.app',
-  appName: 'WeddingMall.Online',
+  appName: 'WeddingMall.online',
   webDir: 'dist',
   android: {
     // No cleartext anywhere: the site is https-only and so is Supabase.
@@ -22,6 +22,11 @@ const config: CapacitorConfig = {
     webContentsDebuggingEnabled: false,
     // Lets the site tell the wrapper apart from mobile Chrome — e.g. to drop the
     // "get the app" banner, or to hide a Share button the WebView cannot honour.
+    appendUserAgent: 'WeddingMallApp',
+  },
+  ios: {
+    // Match the Android wrapper while respecting iPhone safe areas.
+    contentInset: 'automatic',
     appendUserAgent: 'WeddingMallApp',
   },
   server: {

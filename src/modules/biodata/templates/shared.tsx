@@ -112,7 +112,7 @@ export function Footer({ font, colour = BRAND.muted }: { font: string; colour?: 
         alignItems: 'center',
       }}
     >
-      <Text style={{ ...text, letterSpacing: 0.4 }}>Created free at WeddingMall.Online</Text>
+      <Text style={{ ...text, letterSpacing: 0.4 }}>Created free at WeddingMall.online</Text>
       <Text
         style={text}
         render={({ pageNumber, totalPages }) => (totalPages > 1 ? `${pageNumber} / ${totalPages}` : '')}
