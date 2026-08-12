@@ -2,12 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CAPACITOR_DEBUG</key>
+	<key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>WeddingMall.online</string>
+	<string>WeddingMall.online</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -22,19 +22,32 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<!--
+	  The app talks to Supabase over HTTPS and ships no encryption of its own,
+	  so it qualifies for the exemption. Declaring it here stops App Store
+	  Connect asking the export-compliance question on every single upload.
+	-->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!--
+	  The biodata maker's photo picker is the only place the app reads an image,
+	  and that image is rendered into the PDF on the device and never uploaded.
+	  Apple rejects vague purpose strings, so both say exactly that.
+	-->
 	<key>NSCameraUsageDescription</key>
-	<string>WeddingMall.online uses the camera only when you choose to add a biodata or vendor photo.</string>
+	<string>WeddingMall.online uses the camera only when you choose to take a photo for your matrimonial biodata. The photo stays on this device.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>WeddingMall.online uses your photo library only when you choose an image for a biodata or vendor listing.</string>
+	<string>WeddingMall.online reads a photo from your library only when you pick one for your matrimonial biodata. The photo stays on this device.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<!-- iOS 15 is the deployment target, so every supported device is arm64. -->
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
