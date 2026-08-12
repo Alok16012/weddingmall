@@ -1,0 +1,1 @@
+function e(e){return new Worker(`/weddingmall/assets/pdf.worker.min-bpyjgR8v.js`,{name:e?.name})}export{e as default};
