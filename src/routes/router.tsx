@@ -22,6 +22,14 @@ import VendorDashboard from './vendor/Dashboard'
 import VendorLeads from './vendor/Leads'
 import NotFound from './NotFound'
 
+// Every route below is written from the site root. That is exactly right for
+// the app (Capacitor serves the bundle from `/`) and for the production domain,
+// where Vite's BASE_URL is `/` and this resolves to no basename at all. It only
+// matters when the same build is hosted under a sub-path — a GitHub Pages
+// project site, say — where without it React Router would try to match the
+// sub-path as part of the route and every URL would fall through to NotFound.
+const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
+
 export const router = createBrowserRouter([
   {
     // Entry surfaces — always reachable, never behind the gate (the gate sends
@@ -70,4 +78,4 @@ export const router = createBrowserRouter([
       },
     ],
   },
-])
+], { basename })
