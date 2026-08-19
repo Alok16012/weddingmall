@@ -7,7 +7,7 @@ changes need no macOS; only the final iOS signing/archive steps require Xcode.
 
 ```bash
 npm install @capacitor/core @capacitor/cli
-npx cap init "WeddingMall.online" "online.weddingmall.app" --web-dir=dist
+npx cap init "Wedding Mall" "online.weddingmall.app" --web-dir=dist
 npm install @capacitor/android @capacitor/ios
 npx cap add android
 npx cap add ios          # macOS only
@@ -20,7 +20,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
   appId: 'online.weddingmall.app',
-  appName: 'WeddingMall.online',
+  appName: 'Wedding Mall',
   webDir: 'dist',
   server: { androidScheme: 'https' },
   plugins: {
@@ -44,23 +44,25 @@ npm install -D @capacitor/assets
 npx capacitor-assets generate --android
 ```
 
-**Permissions** (`android/app/src/main/AndroidManifest.xml`) — only INTERNET is
-required today. The app has no camera/location/push features:
-```xml
-<uses-permission android:name="android.permission.INTERNET" />
-```
+**Permissions** (`android/app/src/main/AndroidManifest.xml`) — INTERNET and
+ACCESS_NETWORK_STATE are required; CAMERA (optional feature) is what lets the
+file chooser offer "take a photo" for the biodata portrait. Geolocation for
+"Use my current location" is requested by the WebView at the moment it is used
+and needs no manifest entry; the control is hidden unless `VITE_GEOCODE_URL` is
+configured. There is no push integration yet — see `docs/DEPLOYMENT.md`.
 
-**Deep links** — inside `<activity>`:
-```xml
-<intent-filter android:autoVerify="true">
-  <action android:name="android.intent.action.VIEW" />
-  <category android:name="android.intent.category.DEFAULT" />
-  <category android:name="android.intent.category.BROWSABLE" />
-  <data android:scheme="https" android:host="weddingmall.online" />
-</intent-filter>
-```
-This makes the password-reset link (`/auth/reset`) open in the app.
-Host `.well-known/assetlinks.json` on weddingmall.online to verify the domain.
+**Deep links** — both intent filters are already in
+`android/app/src/main/AndroidManifest.xml`: the app's own
+`online.weddingmall.app://` scheme (works with no server setup) and
+`https://weddingmall.online` / `https://www.weddingmall.online` App Links with
+`android:autoVerify="true"`.
+
+`src/lib/deepLinks.ts` maps the incoming URL's path straight onto the router, so
+**every** route is deep-linkable — `/blogs/<slug>`, `/vendor/<id>`, `/auth/reset`
+— not just the password reset. Verification of the https form needs
+`/.well-known/assetlinks.json` on the domain carrying the release signing
+certificate's SHA-256 (see `docs/DEPLOYMENT.md`); until that is hosted the link
+still opens the app, but through the "open with" chooser.
 
 **Debug run**
 ```bash
@@ -84,12 +86,16 @@ cd android && ./gradlew bundleRelease     # → app/build/outputs/bundle/release
 ```bash
 npx cap open ios
 ```
-- **Bundle ID:** `online.weddingmall.app` · **Display name:** WeddingMall.online
+- **Bundle ID:** `online.weddingmall.app` · **Display name:** Wedding Mall
 - Icon master: `brand/weddingmall-app-icon-1024.png`; the iOS app icon and launch
   screen are already generated from it.
 - `Info.plist` includes camera and photo-library explanations because users can
   choose a portrait for their biodata or vendor listing.
-- Associated Domains: `applinks:weddingmall.online` (for the reset deep link).
+- `Info.plist` declares the `online.weddingmall.app` URL scheme, which needs no
+  server setup. For https Universal Links, add the **Associated Domains**
+  capability (`applinks:weddingmall.online`) in Xcode and host
+  `apple-app-site-association` on the domain — `AppDelegate.swift` already
+  forwards both to Capacitor.
 - Pods: `cd ios/App && pod install`
 
 **Archive → TestFlight:** Xcode → *Any iOS Device* → Product → Archive →

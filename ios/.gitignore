@@ -11,3 +11,7 @@ capacitor-cordova-ios-plugins
 # Generated Config files
 App/App/capacitor.config.json
 App/App/config.xml
+
+# Carries your Apple team ID and is per-developer. Create it locally when you
+# want the command-line export; see BUILD_AND_RELEASE.md.
+ExportOptions.plist

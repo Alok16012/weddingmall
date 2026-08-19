@@ -1,15 +1,18 @@
 import mark from '@/assets/brand/weddingmall-mark.webp'
 import blinksAi from '@/assets/brand/blinks-ai.png'
 import { cn } from '@/lib/cn'
+import { BRAND_NAME } from '@/config/company'
 
 /**
  * The product name, in one place. Import this instead of typing the string so
  * the name can never drift between the header, the splash and the PDF footer.
+ * Re-exported from the company config, which is the single source of truth for
+ * every brand and contact fact.
  */
-export const BRAND_NAME = 'WeddingMall.online'
+export { BRAND_NAME }
 
 /**
- * WeddingMall.online butterfly mark (gradient coral→saffron, matches primary
+ * Wedding Mall butterfly mark (gradient coral→saffron, matches primary
  * gradient). Cut from the official 1600px logo in `brand/`, with the white disc
  * keyed out — the transparency is what lets Home tint it white over the coral
  * header (`brightness-0 invert`) instead of stamping a white square there.
@@ -27,18 +30,19 @@ export function LogoMark({ className }: { className?: string }) {
 }
 
 /**
- * Brand wordmark. The ".online" suffix is set a little lighter than the stem so
- * the longer name carries the same optical weight the old one did — and, with
- * `tracking-tight` + `whitespace-nowrap`, still fits beside the city selector
- * on a 320px-wide screen instead of wrapping or pushing it off the edge.
+ * Brand wordmark — "Wedding Mall", the customer-facing name. The domain suffix
+ * is deliberately absent: `.online` belongs to the URL and the legal entity, not
+ * to the brand a couple reads in the header.
  *
- * Colour is inherited (`currentColor`), so the same component works on the
- * white splash and on the coral gradient header.
+ * `tracking-tight` + `whitespace-nowrap` keep it on one line beside the city
+ * selector at 320px instead of wrapping or pushing it off the edge. Colour is
+ * inherited (`currentColor`), so the same component works on the white splash
+ * and on the coral gradient header.
  */
 export function Wordmark({ className }: { className?: string }) {
   return (
     <span className={cn('font-display whitespace-nowrap font-semibold tracking-tight', className)}>
-      WeddingMall<span className="font-medium opacity-85">.online</span>
+      {BRAND_NAME}
     </span>
   )
 }

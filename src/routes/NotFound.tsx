@@ -6,7 +6,7 @@ import { ScreenHeader } from '@/components/layout/ScreenHeader'
 export default function NotFound() {
   return (
     <div>
-      <ScreenHeader title="WeddingMall.online" />
+      <ScreenHeader title="Wedding Mall" />
       <EmptyState
         title="Page not found"
         description="This screen doesn’t exist or the link has expired."

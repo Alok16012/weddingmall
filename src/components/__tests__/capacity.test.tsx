@@ -32,6 +32,8 @@ function venue(amenities: Vendor['amenities']): Vendor {
     amenities,
     paymentPolicies: {},
     createdAt: new Date().toISOString(),
+    phone: null,
+    whatsapp: null,
   }
 }
 

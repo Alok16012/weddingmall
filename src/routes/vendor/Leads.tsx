@@ -68,7 +68,7 @@ export default function VendorLeads() {
           <EmptyState
             icon={<MessageSquare className="h-7 w-7" />}
             title={filter === 'new' ? 'No new enquiries' : 'No enquiries yet'}
-            description="Enquiries from the app and the WeddingMall website both appear here."
+            description="Enquiries from the app and the Wedding Mall website both appear here."
           />
         )}
         {leads.map((l) => (

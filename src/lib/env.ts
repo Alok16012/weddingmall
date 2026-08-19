@@ -14,6 +14,14 @@ export const env = {
   supabaseUrl: read('VITE_SUPABASE_URL'),
   supabasePublishableKey: read('VITE_SUPABASE_PUBLISHABLE_KEY'),
   dataSource: (read('VITE_DATA_SOURCE') ?? 'fixtures') as DataSource,
+  /**
+   * Reverse-geocoding endpoint for "Use my current location". It receives
+   * `?lat=&lon=` and must answer with JSON containing a city name (`city`,
+   * `locality` or `address.city`). Unset by default: without a geocoder the
+   * device's coordinates cannot be turned into a city name, so the control is
+   * hidden rather than shown as a button that goes nowhere.
+   */
+  geocodeUrl: read('VITE_GEOCODE_URL'),
 } as const
 
 /** Guard: refuse to boot if a service/secret key is accidentally exposed client-side. */

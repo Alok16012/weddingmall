@@ -5,6 +5,10 @@ import type { Vendor } from '@/types/domain'
 import { cn } from '@/lib/cn'
 import { platePrice } from './VendorCard'
 import { useFavourites } from '@/hooks/useFavourites'
+import { PriceOrRequest } from './ContactActions'
+import { telHref, whatsappHref } from '@/lib/contact'
+import { track } from '@/lib/analytics'
+import { MessageCircle, Phone } from 'lucide-react'
 
 const BADGE_TONE: Record<string, string> = {
   'Most Preferred': 'bg-[var(--color-primary)] text-white',
@@ -24,6 +28,11 @@ export function VendorRow({ vendor, index }: { vendor: Vendor; index?: number })
   const price = platePrice(vendor)
   const seating = vendor.amenities.seatingCapacity
   const floating = vendor.amenities.floatingCapacity
+  const tel = telHref(vendor.phone)
+  const wa = whatsappHref(vendor.whatsapp, {
+    vendorName: vendor.name,
+    listingRef: vendor.id.slice(0, 8).toUpperCase(),
+  })
 
   return (
     <article
@@ -33,7 +42,16 @@ export function VendorRow({ vendor, index }: { vendor: Vendor; index?: number })
         index !== undefined && 'reveal',
       )}
     >
-      <Link to={`/vendor/${vendor.id}`} className="flex gap-3 p-2.5">
+      {/* The whole row opens the listing, but Call / WhatsApp / Request Price
+          are real controls — so the destination is a stretched overlay link
+          rather than a wrapper, which would have nested anchors inside it. */}
+      <Link
+        to={`/vendor/${vendor.id}`}
+        className="absolute inset-0 z-[1]"
+        aria-label={`View ${vendor.name}`}
+      />
+
+      <div className="flex gap-3 p-2.5">
         {/* Media */}
         <div className="relative h-[104px] w-[104px] shrink-0">
           <Img
@@ -45,7 +63,10 @@ export function VendorRow({ vendor, index }: { vendor: Vendor; index?: number })
             fallback={<Images className="h-6 w-6" aria-hidden />}
           />
           {vendor.images.length > 1 && (
-            <span className="absolute bottom-1 left-1 inline-flex items-center gap-0.5 rounded bg-ink/75 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+            <span
+              aria-label={`${vendor.images.length} photos`}
+              className="absolute bottom-1 left-1 inline-flex items-center gap-0.5 rounded bg-ink/75 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+            >
               <Images className="h-2.5 w-2.5" aria-hidden /> {vendor.images.length}
             </span>
           )}
@@ -91,24 +112,53 @@ export function VendorRow({ vendor, index }: { vendor: Vendor; index?: number })
             )}
           </div>
 
-          {/* Price rail */}
-          <div className="mt-auto flex items-end justify-between gap-2 pt-1.5">
-            <span className="tnum truncate text-[13px] font-bold text-[var(--color-primary)]">
-              {price ?? 'Price on Request'}
-            </span>
-            <span className="btn-primary-surface shrink-0 rounded-[var(--radius-field)] px-3.5 py-1.5 text-[11px] font-bold">
-              Enquire
-            </span>
+          {/* Price / action rail */}
+          <div className="relative z-[2] mt-auto flex items-end justify-between gap-2 pt-1.5">
+            <PriceOrRequest vendor={vendor} price={price} className="truncate !text-[13px]" />
+            <div className="flex shrink-0 items-center gap-1.5">
+              {tel && (
+                <a
+                  href={tel}
+                  onClick={() => track('call_vendor', { vendor_id: vendor.id, surface: 'row' })}
+                  aria-label={`Call ${vendor.name}`}
+                  className="tap grid h-8 w-8 place-items-center rounded-full border border-line text-ink-soft"
+                >
+                  <Phone className="h-3.5 w-3.5" aria-hidden />
+                </a>
+              )}
+              {wa && (
+                <a
+                  href={wa}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => track('whatsapp_vendor', { vendor_id: vendor.id, surface: 'row' })}
+                  aria-label={`WhatsApp ${vendor.name}`}
+                  className="tap grid h-8 w-8 place-items-center rounded-full border border-success text-success"
+                >
+                  <MessageCircle className="h-3.5 w-3.5" aria-hidden />
+                </a>
+              )}
+              <Link
+                to={`/enquiry/${vendor.id}`}
+                className="btn-primary-surface shrink-0 rounded-[var(--radius-field)] px-3.5 py-1.5 text-[11px] font-bold"
+                aria-label={`Send an enquiry to ${vendor.name}`}
+              >
+                Enquire
+              </Link>
+            </div>
           </div>
         </div>
-      </Link>
+      </div>
 
       <button
         type="button"
-        onClick={() => toggle(vendor.id)}
+        onClick={() => {
+          toggle(vendor.id)
+          track('shortlist_listing', { vendor_id: vendor.id, added: !fav, surface: 'row' })
+        }}
         aria-pressed={fav}
         aria-label={fav ? 'Remove from shortlist' : 'Add to shortlist'}
-        className="tap absolute right-1 top-1 grid h-8 w-8 place-items-center rounded-full"
+        className="tap absolute right-1 top-1 z-[2] grid h-8 w-8 place-items-center rounded-full"
       >
         <Heart
           className={cn('h-4 w-4', fav ? 'fill-[var(--color-primary)] text-[var(--color-primary)]' : 'text-muted')}

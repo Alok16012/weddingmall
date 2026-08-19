@@ -82,7 +82,7 @@ export default function Privacy() {
 
         <p className="flex items-start gap-2 rounded-[var(--radius-card)] bg-surface-2 p-3 text-xs text-muted">
           <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-          Vendor accounts are managed by WeddingMall. To delete a vendor account or an enquiry
+          Vendor accounts are managed by Wedding Mall. To delete a vendor account or an enquiry
           record, contact support via weddingmall.online.
         </p>
       </div>

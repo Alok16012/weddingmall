@@ -1,18 +1,47 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Check, ChevronDown, Globe2, MapPin, Search } from 'lucide-react'
+import { Check, ChevronDown, Clock, Crosshair, Globe2, MapPin, Search } from 'lucide-react'
 import { listLocations, listPopularCities } from '@/services/content'
 import { useCity } from '@/hooks/useCity'
+import { canDetectLocation, detectCity, locationErrorMessage } from '@/lib/geolocation'
+import { track } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 import { Skeleton, ErrorState } from '@/components/ui/states'
 import { ScreenHeader } from '@/components/layout/ScreenHeader'
+
+/** Last few cities chosen on this device — the fastest path back for anyone
+ *  planning across two cities, which is most families. */
+const RECENT_KEY = 'wm.recent-cities.v1'
+const RECENT_MAX = 5
+
+function readRecent(): string[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]') as unknown
+    return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+function pushRecent(city: string): string[] {
+  const next = [city, ...readRecent().filter((c) => c !== city)].slice(0, RECENT_MAX)
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(next))
+  } catch {
+    /* Private mode — recents are a convenience, not state we depend on. */
+  }
+  return next
+}
 
 export default function CitySelector() {
   const navigate = useNavigate()
   const { city, setCity } = useCity()
   const [q, setQ] = useState('')
   const [openState, setOpenState] = useState<string | null>(null)
+  const [recent, setRecent] = useState<string[]>(readRecent)
+  const [detecting, setDetecting] = useState(false)
+  const [locationNote, setLocationNote] = useState<string | null>(null)
 
   const popular = useQuery({ queryKey: ['popular-cities'], queryFn: listPopularCities })
   const all = useQuery({ queryKey: ['locations'], queryFn: listLocations })
@@ -30,9 +59,25 @@ export default function CitySelector() {
 
   const searching = q.trim() !== ''
 
-  function choose(next: string | null) {
+  function choose(next: string | null, method: 'list' | 'popular' | 'recent' | 'detected' = 'list') {
     setCity(next)
+    if (next) setRecent(pushRecent(next))
+    track('location_changed', { city: next ?? 'All India', method })
     navigate(-1)
+  }
+
+  async function detectMyCity() {
+    setDetecting(true)
+    setLocationNote(null)
+    try {
+      choose(await detectCity(), 'detected')
+    } catch (err) {
+      // A declined permission is a normal answer, not an error state: say what
+      // happened once and leave the manual list right where it was.
+      setLocationNote(locationErrorMessage(err))
+    } finally {
+      setDetecting(false)
+    }
   }
 
   return (
@@ -50,6 +95,25 @@ export default function CitySelector() {
           />
         </label>
 
+        {canDetectLocation() && (
+          <button
+            onClick={() => void detectMyCity()}
+            disabled={detecting}
+            className="tap mt-3 flex w-full items-center gap-3 rounded-[var(--radius-field)] border border-[var(--color-primary)] bg-surface px-4 py-3 text-left disabled:opacity-60"
+          >
+            <Crosshair className="h-5 w-5 text-[var(--color-primary)]" aria-hidden />
+            <span className="flex-1 font-semibold text-[var(--color-primary)]">
+              {detecting ? 'Finding your city…' : 'Use my current location'}
+            </span>
+          </button>
+        )}
+
+        {locationNote && (
+          <p role="status" className="mt-2 rounded-[var(--radius-field)] bg-surface-2 p-3 text-sm text-muted">
+            {locationNote}
+          </p>
+        )}
+
         <button
           onClick={() => choose(null)}
           className={cn(
@@ -62,6 +126,29 @@ export default function CitySelector() {
           {!city && <Check className="h-5 w-5 text-[var(--color-primary)]" aria-hidden />}
         </button>
 
+        {!q && recent.length > 0 && (
+          <section className="mt-5">
+            <h2 className="mb-2 text-lg text-ink">Recent</h2>
+            <div className="flex flex-wrap gap-2">
+              {recent.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => choose(c, 'recent')}
+                  className={cn(
+                    'tap inline-flex items-center gap-1.5 rounded-[var(--radius-field)] border px-3.5 py-2 text-sm font-semibold',
+                    city === c
+                      ? 'border-[var(--color-primary)] bg-[var(--color-primary-100)] text-[var(--color-primary)]'
+                      : 'border-line bg-surface text-ink',
+                  )}
+                >
+                  <Clock className="h-3.5 w-3.5 text-muted" aria-hidden />
+                  {c}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
         {!q && (
           <section className="mt-5">
             <h2 className="mb-2 text-lg text-ink">Popular Cities</h2>
@@ -70,7 +157,7 @@ export default function CitySelector() {
               {popular.data?.map((c) => (
                 <button
                   key={c.id}
-                  onClick={() => choose(c.name)}
+                  onClick={() => choose(c.name, 'popular')}
                   className={cn(
                     'tap rounded-[var(--radius-field)] border px-3.5 py-2 text-sm font-semibold',
                     city === c.name

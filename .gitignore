@@ -53,3 +53,6 @@ keystore.properties
 *.sw?
 .vercel
 .env*
+
+# Supabase CLI scratch state — not part of the project
+supabase/.temp/

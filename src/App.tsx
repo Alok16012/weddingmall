@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { SessionProvider, useSession } from '@/auth/SessionContext'
@@ -6,9 +7,15 @@ import { router } from '@/routes/router'
 import Splash from '@/routes/auth/Splash'
 import { ConfigError } from '@/components/ConfigError'
 import { getSupabase } from '@/services/supabase/client'
+import { startDeepLinkListener } from '@/lib/deepLinks'
 
 function Root() {
   const { initializing } = useSession()
+
+  // Native deep links go straight to the router — the same paths the website
+  // uses, because both run this router.
+  useEffect(() => startDeepLinkListener((path) => void router.navigate(path)), [])
+
   // Session-restore screen before the router mounts.
   if (initializing) return <Splash />
   return <RouterProvider router={router} />

@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  BookOpen, Briefcase, ChevronRight, FileText, Heart, LogOut, MapPin, Repeat, Shield, ShieldCheck,
-  Store, UserSquare,
+  Bell, BookOpen, Briefcase, ChevronRight, ClipboardList, Compass, FileText, Heart, LifeBuoy, LogOut,
+  MapPin, MessagesSquare, PencilLine, Repeat, Share2, Shield, ShieldCheck, Store, UserSquare,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useSession } from '@/auth/SessionContext'
@@ -9,6 +10,11 @@ import { useEntry } from '@/auth/entry'
 import { isNativeApp } from '@/lib/platform'
 import { useCity } from '@/hooks/useCity'
 import { useFavourites } from '@/hooks/useFavourites'
+import { useUnreadNotifications } from '@/hooks/useUnreadNotifications'
+import { shareContent } from '@/lib/share'
+import { resetOnboardingLocally } from '@/services/appState'
+import { track } from '@/lib/analytics'
+import { SHARE_TEXT, WEBSITE_URL, BRAND_NAME } from '@/config/company'
 import { Logo, BlinksAICredit } from '@/components/Brand'
 import { Button, buttonClasses } from '@/components/ui/Button'
 import { ScreenHeader } from '@/components/layout/ScreenHeader'
@@ -17,8 +23,28 @@ export default function Profile() {
   const { isVendor, email, signOut } = useSession()
   const { city } = useCity()
   const { count } = useFavourites()
+  const unread = useUnreadNotifications()
   const { entry, reset } = useEntry()
   const navigate = useNavigate()
+  const [shareNote, setShareNote] = useState<string | null>(null)
+
+  async function shareApp() {
+    const outcome = await shareContent({
+      title: BRAND_NAME,
+      text: SHARE_TEXT,
+      url: WEBSITE_URL,
+    })
+    track('share_app', { outcome, surface: 'more' })
+    // Only the clipboard fallback needs saying out loud — the native sheet and
+    // a dismissal are both self-evident to whoever just used them.
+    setShareNote(
+      outcome === 'copied'
+        ? 'Link copied to your clipboard'
+        : outcome === 'unavailable'
+          ? `Sharing isn’t available here — the link is ${WEBSITE_URL}`
+          : null,
+    )
+  }
 
   /** Back to the Guest / Vendor choice, ending any session along the way. */
   async function switchLogin() {
@@ -74,25 +100,53 @@ export default function Profile() {
           </section>
         )}
 
-        {/* Quick links */}
-        <section className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
+        {/* Grouped so the menu reads as three jobs — where you are and what
+            you've saved, the tools, and the app itself — rather than one list. */}
+        <Group title="Planning">
           <Row to="/city" icon={<MapPin className="h-5 w-5" />} label="Location" value={city ?? 'All India'} />
           <Row to="/favourites" icon={<Heart className="h-5 w-5" />} label="Shortlist" value={count ? `${count}` : '—'} />
+          <Row to="/bookings" icon={<ClipboardList className="h-5 w-5" />} label="My Bookings" />
+          <Row to="/inbox" icon={<MessagesSquare className="h-5 w-5" />} label="Inbox" />
+          <Row
+            to="/notifications"
+            icon={<Bell className="h-5 w-5" />}
+            label="Notifications"
+            value={unread ? `${unread} new` : undefined}
+          />
+        </Group>
+
+        <Group title="Tools">
           <Row
             to="/biodata"
             icon={<UserSquare className="h-5 w-5" />}
-            label="Free Biodata maker"
+            label="Free Biodata Maker"
             value="Free"
           />
-          <Row to="/blogs" icon={<BookOpen className="h-5 w-5" />} label="Wedding ideas" />
-          <Row to="/careers" icon={<Briefcase className="h-5 w-5" />} label="Careers" />
-        </section>
+          <Row to="/review" icon={<PencilLine className="h-5 w-5" />} label="Write a Review" />
+          <Row to="/blogs" icon={<BookOpen className="h-5 w-5" />} label="Wedding Ideas & Inspiration" />
+        </Group>
 
-        {/* Legal */}
-        <section className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
+        <Group title="App">
+          <ActionRow onClick={() => void shareApp()} icon={<Share2 className="h-5 w-5" />} label="Share App" />
+          <ActionRow
+            onClick={() => {
+              resetOnboardingLocally()
+              navigate('/')
+            }}
+            icon={<Compass className="h-5 w-5" />}
+            label="Replay app tour"
+          />
+          <Row to="/contact" icon={<LifeBuoy className="h-5 w-5" />} label="Contact us" />
+          <Row to="/careers" icon={<Briefcase className="h-5 w-5" />} label="Careers" />
           <Row to="/privacy" icon={<Shield className="h-5 w-5" />} label="Privacy & data" />
           <Row to="/legal/terms" icon={<FileText className="h-5 w-5" />} label="Terms of use" />
-        </section>
+        </Group>
+
+        {shareNote && (
+          <p role="status" className="px-1 text-sm text-muted">
+            {shareNote}
+          </p>
+        )}
 
         {isVendor && (
           <Button fullWidth variant="outline" leftIcon={<LogOut className="h-4 w-4" />} onClick={signOut}>
@@ -121,6 +175,20 @@ export default function Profile() {
   )
 }
 
+function Group({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section aria-label={title}>
+      <h2 className="mb-1.5 px-1 text-xs font-bold uppercase tracking-wide text-muted">{title}</h2>
+      <div className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface">
+        {children}
+      </div>
+    </section>
+  )
+}
+
+const rowClasses =
+  'tap flex w-full items-center gap-3 border-b border-line px-4 py-3.5 text-left last:border-0 hover:bg-surface-2'
+
 function Row({
   to,
   icon,
@@ -133,14 +201,30 @@ function Row({
   value?: string
 }) {
   return (
-    <Link
-      to={to}
-      className="tap flex w-full items-center gap-3 border-b border-line px-4 py-3.5 last:border-0 hover:bg-surface-2"
-    >
+    <Link to={to} className={rowClasses}>
       <span className="text-ink-soft">{icon}</span>
       <span className="flex-1 font-medium text-ink">{label}</span>
       {value && <span className="text-sm text-muted">{value}</span>}
       <ChevronRight className="h-5 w-5 text-muted" aria-hidden />
     </Link>
+  )
+}
+
+/** Same row, but it performs an action instead of navigating. */
+function ActionRow({
+  onClick,
+  icon,
+  label,
+}: {
+  onClick: () => void
+  icon: ReactNode
+  label: string
+}) {
+  return (
+    <button type="button" onClick={onClick} className={rowClasses}>
+      <span className="text-ink-soft">{icon}</span>
+      <span className="flex-1 font-medium text-ink">{label}</span>
+      <ChevronRight className="h-5 w-5 text-muted" aria-hidden />
+    </button>
   )
 }
