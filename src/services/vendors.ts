@@ -1,5 +1,6 @@
 import type { Vendor, VendorAmenities, VendorPaymentPolicies, VendorStatus } from '@/types/domain'
 import { requireSupabase, toServiceError } from './supabase/client'
+import { hasCapability } from './supabase/capabilities'
 
 /**
  * Columns selected for list views (keeps payloads small).
@@ -11,6 +12,16 @@ import { requireSupabase, toServiceError } from './supabase/client'
 const LIST_COLS =
   'id,name,category,location,price,price_unit,veg_price,non_veg_price,description,images,image,rating,status,badge,is_trending,amenities,created_at'
 const DETAIL_COLS = `${LIST_COLS},email,payment_policies`
+
+/**
+ * `vendors.phone` / `vendors.whatsapp` only exist once migration 0001 has run.
+ * Naming a column PostgREST does not know about fails the entire request, so
+ * the projection is assembled per call from what the backend actually has.
+ * The answer is probed once and memoised for the session.
+ */
+async function withContactCols(base: string): Promise<string> {
+  return (await hasCapability('vendorContact')) ? `${base},phone,whatsapp` : base
+}
 
 /** Raw row shape as returned by PostgREST (snake_case). */
 interface VendorRow {
@@ -33,6 +44,8 @@ interface VendorRow {
   amenities: VendorAmenities | null
   payment_policies: VendorPaymentPolicies | null
   created_at: string
+  phone?: string | null
+  whatsapp?: string | null
 }
 
 /** Map a DB row to the domain type. Single place where snake_case dies. */
@@ -58,6 +71,11 @@ export function mapVendor(r: VendorRow): Vendor {
     amenities: r.amenities ?? {},
     paymentPolicies: r.payment_policies ?? {},
     createdAt: r.created_at,
+    // Blank strings are as good as absent for a dial action, so they collapse
+    // to null here and the Call / WhatsApp buttons never render for them.
+    phone: r.phone?.trim() || null,
+    // A vendor who gave only one number is reachable on it for both.
+    whatsapp: r.whatsapp?.trim() || r.phone?.trim() || null,
   }
 }
 
@@ -68,6 +86,14 @@ export interface VendorQuery {
   q?: string
   /** Category slug from `vendors.category` (text[]). */
   category?: string
+  /**
+   * Match a vendor listed under ANY of these slugs — an array *overlap*, not a
+   * containment. This is what the Venue / Vendors / Shopping tabs filter by,
+   * since each is a family of categories rather than one. Ignored when
+   * `category` is set, so narrowing to a single category inside a tab still
+   * works.
+   */
+  categories?: string[]
   /** City, matches `vendors.location`. */
   city?: string
   trendingOnly?: boolean
@@ -100,6 +126,7 @@ export async function listVendors(query: VendorQuery = {}): Promise<Page<Vendor>
   const {
     q,
     category,
+    categories,
     city,
     trendingOnly,
     badge,
@@ -112,10 +139,13 @@ export async function listVendors(query: VendorQuery = {}): Promise<Page<Vendor>
     const supabase = requireSupabase()
     let req = supabase
       .from('vendors')
-      .select(LIST_COLS, { count: 'exact' })
+      .select(await withContactCols(LIST_COLS), { count: 'exact' })
       .eq('status', 'active')
 
+    // A single category wins over the section's family, so drilling into
+    // "Banquet Halls" from inside the Venue tab narrows rather than widens.
     if (category) req = req.contains('category', [category])
+    else if (categories?.length) req = req.overlaps('category', categories)
     if (city) req = req.eq('location', city)
     if (trendingOnly) req = req.eq('is_trending', true)
     if (badge) req = req.eq('badge', badge)
@@ -158,7 +188,7 @@ export async function getVendor(id: string): Promise<Vendor | null> {
     const supabase = requireSupabase()
     const { data, error } = await supabase
       .from('vendors')
-      .select(DETAIL_COLS)
+      .select(await withContactCols(DETAIL_COLS))
       .eq('id', id)
       .maybeSingle()
     if (error) throw error
@@ -290,7 +320,7 @@ export async function getMyVendor(email: string): Promise<Vendor | null> {
     const supabase = requireSupabase()
     const { data, error } = await supabase
       .from('vendors')
-      .select(DETAIL_COLS)
+      .select(await withContactCols(DETAIL_COLS))
       .ilike('email', email)
       .maybeSingle()
     if (error) throw error

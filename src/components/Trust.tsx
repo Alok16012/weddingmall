@@ -11,7 +11,7 @@ const STATS: { value: string; label: string }[] = [
 export function TrustStrip() {
   return (
     <section
-      aria-label="Why couples trust WeddingMall"
+      aria-label="Why couples trust Wedding Mall"
       className="grid grid-cols-3 divide-x divide-line rounded-[var(--radius-card)] border border-line bg-surface py-3"
     >
       {STATS.map((s) => (
@@ -33,7 +33,7 @@ const PILLARS: { icon: ComponentType<{ className?: string }>; title: string; des
 export function WhyWeddingMall() {
   return (
     <section>
-      <h2 className="mb-3 px-4 text-xl text-ink">Why WeddingMall</h2>
+      <h2 className="mb-3 px-4 text-xl text-ink">Why Wedding Mall</h2>
       <div className="space-y-2.5 px-4">
         {PILLARS.map((p) => (
           <div

@@ -5,7 +5,7 @@ import { BRAND_NAME } from '@/components/Brand'
 import { ScreenHeader } from '../ScreenHeader'
 
 describe('ScreenHeader', () => {
-  it('shows the WeddingMall.online logo and links it home', () => {
+  it('shows the Wedding Mall logo and links it home', () => {
     render(
       <MemoryRouter>
         <ScreenHeader title="Wedding Services" />

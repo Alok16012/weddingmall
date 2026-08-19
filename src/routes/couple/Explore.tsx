@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { MapPin, Search, SlidersHorizontal, X } from 'lucide-react'
-import { CATEGORY_LABELS, categoryLabel } from '@/types/domain'
+import { CATEGORY_LABELS, NAV_SECTIONS, categoryLabel, type NavSection } from '@/types/domain'
 import { listVendors, type VendorSort } from '@/services/vendors'
 import { listPopularCities } from '@/services/content'
 import { useDebounced } from '@/hooks/useDebounced'
@@ -21,11 +21,29 @@ const SORTS: { key: VendorSort; label: string }[] = [
 
 const PAGE_SIZE = 12
 
-export default function Explore() {
+/**
+ * The catalogue screen.
+ *
+ * With no `section` it is the open-ended "All Vendors" search reached from the
+ * Home search bar. With one, it becomes the Venue / Vendors / Shopping tab: the
+ * same screen constrained to that section's family of categories, so all four
+ * surfaces share one set of filters, one pagination path and one empty state
+ * rather than three near-copies.
+ */
+export default function Explore({ section }: { section?: NavSection['key'] }) {
   const [params, setParams] = useSearchParams()
-  const category = params.get('category') ?? undefined
+  const nav = section ? NAV_SECTIONS[section] : undefined
   const city = params.get('city') ?? undefined
   const trendingOnly = params.get('trending') === '1'
+
+  // Inside a section, only that section's own categories may be selected — a
+  // stale `?category=` from another tab would otherwise show zero results under
+  // a heading promising venues.
+  const rawCategory = params.get('category') ?? undefined
+  const category = nav && rawCategory && !nav.slugs.includes(rawCategory) ? undefined : rawCategory
+
+  /** Categories offered in the filter panel: the section's, or all of them. */
+  const categoryChoices = nav ? nav.slugs : Object.keys(CATEGORY_LABELS)
 
   const [rawQuery, setRawQuery] = useState(params.get('q') ?? '')
   const q = useDebounced(rawQuery, 350)
@@ -35,8 +53,16 @@ export default function Explore() {
   const cities = useQuery({ queryKey: ['popular-cities'], queryFn: listPopularCities })
 
   const filters = useMemo(
-    () => ({ q: q || undefined, category, city, trendingOnly, sort, pageSize: PAGE_SIZE }),
-    [q, category, city, trendingOnly, sort],
+    () => ({
+      q: q || undefined,
+      category,
+      categories: nav?.slugs,
+      city,
+      trendingOnly,
+      sort,
+      pageSize: PAGE_SIZE,
+    }),
+    [q, category, nav, city, trendingOnly, sort],
   )
 
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -48,7 +74,8 @@ export default function Explore() {
     })
 
   const items = data?.pages.flatMap((p) => p.items) ?? []
-  const total = data?.pages[0]?.total ?? 0
+  // `total` still comes back from the query — pagination needs it — it just
+  // isn't shown any more. `activeCount` below counts filters, not listings.
   const activeCount = (category ? 1 : 0) + (city ? 1 : 0) + (trendingOnly ? 1 : 0)
 
   // Keep the URL in sync so results are deep-link/shareable.
@@ -72,11 +99,12 @@ export default function Explore() {
     setParams(new URLSearchParams(), { replace: true })
   }
 
-  const title = category ? categoryLabel(category) : 'All Vendors'
+  const title = category ? categoryLabel(category) : (nav?.title ?? 'All Vendors')
+  const subtitle = city ?? (category ? undefined : nav?.subtitle)
 
   return (
     <div>
-      <ScreenHeader title={title} subtitle={city ?? undefined} />
+      <ScreenHeader title={title} subtitle={subtitle} />
 
       <div className="sticky top-[60px] z-20 space-y-3 border-b border-line bg-canvas px-4 pb-2.5 pt-1">
         {/* Search */}
@@ -90,7 +118,13 @@ export default function Explore() {
             aria-label="Search vendors"
           />
           {rawQuery && (
-            <button onClick={() => setRawQuery('')} aria-label="Clear search">
+            <button
+              onClick={() => setRawQuery('')}
+              aria-label="Clear search"
+              // -my-3 cancels the label's padding so the row keeps its height
+              // while the button itself stays a 44px target.
+              className="-my-3 -mr-1 grid h-11 w-11 shrink-0 place-items-center"
+            >
               <X className="h-4 w-4 text-muted" />
             </button>
           )}
@@ -141,7 +175,7 @@ export default function Explore() {
               <p className="mb-2 text-sm font-bold text-ink">Category</p>
               <div className="flex flex-wrap gap-2">
                 <Pill active={!category} onClick={() => patch('category')}>All</Pill>
-                {Object.keys(CATEGORY_LABELS).map((slug) => (
+                {categoryChoices.map((slug) => (
                   <Pill key={slug} active={category === slug} onClick={() => patch('category', slug)}>
                     {categoryLabel(slug)}
                   </Pill>
@@ -170,14 +204,15 @@ export default function Explore() {
             </label>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" onClick={clearAll}>Clear all</Button>
-              <Button size="sm" onClick={() => setShowFilters(false)}>Show {total} results</Button>
+              <Button size="sm" onClick={() => setShowFilters(false)}>Show results</Button>
             </div>
           </div>
         )}
 
-        <p className="tnum text-sm text-muted">
-          {isLoading ? 'Searching…' : `${total} vendor${total === 1 ? '' : 's'} found`}
-        </p>
+        {/* Deliberately no "N vendors found" line. A raw listing count sets an
+            expectation about inventory rather than helping anyone choose, and
+            the brief asks for it to go. The loading state still speaks. */}
+        {isLoading && <p className="text-sm text-muted">Searching…</p>}
       </div>
 
       {/* Results */}

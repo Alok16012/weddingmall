@@ -28,6 +28,33 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!--
+              Deep links.
+
+              The first filter is the app's own scheme and works with no server
+              setup: online.weddingmall.app://blogs/<slug>.
+
+              The second is Android App Links over https. `autoVerify` only
+              takes effect once /.well-known/assetlinks.json is served from
+              weddingmall.online with this app's signing-certificate SHA-256 —
+              see docs/DEPLOYMENT.md. Until then the link still reaches the app,
+              just via the "open with" chooser rather than automatically.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="online.weddingmall.app" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="weddingmall.online" />
+                <data android:scheme="https" android:host="www.weddingmall.online" />
+            </intent-filter>
+
         </activity>
 
         <provider

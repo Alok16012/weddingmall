@@ -10,7 +10,7 @@ export default function Careers() {
 
   return (
     <div className="pb-6">
-      <ScreenHeader title="Careers" subtitle="Join the WeddingMall team" back />
+      <ScreenHeader title="Careers" subtitle="Join the Wedding Mall team" back />
       <div className="space-y-3 px-4 pt-1">
         {isLoading && [0, 1].map((i) => <Skeleton key={i} className="h-24 w-full" />)}
         {isError && <ErrorState onRetry={() => refetch()} />}

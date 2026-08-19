@@ -1,17 +1,51 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Car, Check, Heart, Images, MapPin, MessageCircle, Star, Users, Wifi } from 'lucide-react'
-import type { Vendor } from '@/types/domain'
-import { categoryLabel } from '@/types/domain'
+import {
+  BadgeCheck, Car, Check, Heart, Images, MapPin, PencilLine, Star, Users, Wifi,
+} from 'lucide-react'
+import type { Review, Vendor } from '@/types/domain'
+import { categoryLabel, NAV_SECTIONS } from '@/types/domain'
 import { getVendor } from '@/services/vendors'
+import { listVendorReviews } from '@/services/reviews'
 import { platePrice } from '@/components/VendorCard'
-import { buttonClasses } from '@/components/ui/Button'
+import { ContactActions } from '@/components/ContactActions'
 import { ErrorState, Skeleton } from '@/components/ui/states'
 import { ScreenHeader } from '@/components/layout/ScreenHeader'
 import { GalleryLightbox } from '@/components/GalleryLightbox'
 import { useFavourites } from '@/hooks/useFavourites'
+import { track } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
+
+function ReviewCard({ review }: { review: Review }) {
+  return (
+    <article className="rounded-[var(--radius-card)] border border-line bg-surface p-3.5">
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1 rounded-[var(--radius-field)] bg-success px-1.5 py-0.5 text-xs font-bold text-white">
+          <Star className="h-3 w-3 fill-white" aria-hidden />
+          <span className="tnum">{review.rating}</span>
+        </span>
+        {review.verifiedBooking && (
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-success">
+            <BadgeCheck className="h-3.5 w-3.5" aria-hidden /> Verified booking
+          </span>
+        )}
+        {review.eventDate && (
+          <span className="tnum ml-auto text-xs text-muted">{review.eventDate}</span>
+        )}
+      </div>
+      {review.title && <h3 className="mt-1.5 font-semibold text-ink">{review.title}</h3>}
+      {review.body && (
+        <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-ink-soft">
+          {review.body}
+        </p>
+      )}
+      {review.serviceUsed && (
+        <p className="mt-1.5 text-xs text-muted">Service used: {review.serviceUsed}</p>
+      )}
+    </article>
+  )
+}
 
 /** Boolean amenity flags → labelled chips (only the true ones are shown). */
 const FLAGS: { key: keyof Vendor['amenities']; label: string; icon?: typeof Wifi }[] = [
@@ -53,6 +87,27 @@ export default function VendorDetail() {
     queryKey: ['vendor', id],
     queryFn: () => getVendor(id),
   })
+
+  // Published reviews. Returns [] when the reviews table isn't there yet, so
+  // the section simply doesn't render rather than showing an empty shell.
+  const { data: reviews } = useQuery({
+    queryKey: ['reviews', id],
+    queryFn: () => listVendorReviews(id),
+    enabled: !!id,
+    retry: false,
+  })
+
+  // A venue and a vendor are the same row in this database; the brief asks for
+  // separate events, so the listing's own categories decide which one fires.
+  useEffect(() => {
+    if (!vendor) return
+    const isVenue = vendor.category.some((c) => NAV_SECTIONS.venue.slugs.includes(c))
+    track(isVenue ? 'venue_view' : 'vendor_view', {
+      vendor_id: vendor.id,
+      vendor_name: vendor.name,
+      city: vendor.location ?? undefined,
+    })
+  }, [vendor])
 
   if (isLoading) {
     return (
@@ -182,13 +237,15 @@ export default function VendorDetail() {
           )}
         </div>
 
-        {/* Price */}
+        {/* Price + the contact group. When no price is published, the card's
+            job is to get the couple to the action that gets them one. */}
         <div className="rounded-[var(--radius-card)] border border-line bg-surface-2 p-4">
           <p className="text-xs uppercase tracking-wide text-muted">Pricing</p>
           <p className="tnum mt-0.5 text-xl font-bold text-ink">{price ?? 'Price on Request'}</p>
           {vendor.paymentPolicies.gstIncluded && (
             <p className="mt-1 text-xs text-success">GST included</p>
           )}
+          <ContactActions vendor={vendor} className="mt-3" />
         </div>
 
         {vendor.description && (
@@ -266,17 +323,39 @@ export default function VendorDetail() {
             </div>
           </section>
         )}
+
+        {/* Reviews */}
+        <section>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h2 className="text-xl text-ink">Reviews</h2>
+            <Link
+              to={`/review/${vendor.id}`}
+              className="tap inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-primary)]"
+            >
+              <PencilLine className="h-4 w-4" aria-hidden /> Write a review
+            </Link>
+          </div>
+          {reviews && reviews.length > 0 ? (
+            <div className="space-y-2.5">
+              {reviews.map((r) => (
+                <ReviewCard key={r.id} review={r} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted">
+              No reviews yet. If you have celebrated here, yours would be the first.
+            </p>
+          )}
+        </section>
       </div>
 
-      {/* Sticky enquiry bar */}
+      {/* Sticky action bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 mx-auto flex max-w-md items-center gap-3 border-t border-line bg-surface/97 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 shrink-0">
           <p className="truncate text-xs text-muted">{price ? 'Starting from' : 'Pricing'}</p>
           <p className="tnum truncate text-sm font-bold text-ink">{price ?? 'On request'}</p>
         </div>
-        <Link to={`/enquiry/${vendor.id}`} className={buttonClasses({ className: 'flex-1' })}>
-          <MessageCircle className="h-4 w-4" /> Send Enquiry
-        </Link>
+        <ContactActions vendor={vendor} size="sm" className="min-w-0 flex-1" />
       </div>
     </div>
   )

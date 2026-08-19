@@ -55,7 +55,7 @@ export default function VendorLogin() {
             <Store className="h-5 w-5" aria-hidden />
           </span>
           <p className="text-sm text-ink-soft">
-            Sign in with the business email registered on WeddingMall to manage your enquiries.
+            Sign in with the business email registered on Wedding Mall to manage your enquiries.
           </p>
         </div>
 

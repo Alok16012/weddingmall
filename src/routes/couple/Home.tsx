@@ -11,6 +11,7 @@ import { VendorCard } from '@/components/VendorCard'
 import { VendorCardSkeleton, Skeleton, ErrorState } from '@/components/ui/states'
 import { CategoryTile } from '@/components/CategoryTile'
 import { TrustStrip, WhyWeddingMall } from '@/components/Trust'
+import { PROPOSITION, TAGLINE } from '@/config/company'
 
 export default function Home() {
   const { city } = useCity()
@@ -52,11 +53,23 @@ export default function Home() {
         </div>
 
         <div className="mt-5">
-          <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] bg-white/20 px-2.5 py-1 text-[11px] font-bold backdrop-blur">
-            <Sparkles className="h-3.5 w-3.5" aria-hidden /> India&apos;s Wedding Marketplace
+          {/* The full tagline is 50 characters, so it sits on one line from
+              ~390px up and wraps to two below that rather than stretching the
+              pill past the screen — hence `items-start` and `leading-snug`. */}
+          <span className="inline-flex max-w-full items-start gap-1.5 rounded-[var(--radius-pill)] bg-white/20 px-2.5 py-1 text-[11px] font-bold leading-snug backdrop-blur">
+            <Sparkles className="mt-[1px] h-3.5 w-3.5 shrink-0" aria-hidden />
+            <span>{TAGLINE}</span>
           </span>
-          <h1 className="mt-2 text-[1.7rem] font-bold leading-tight">Plan Your Dream Wedding</h1>
-          <p className="mt-0.5 text-sm text-white/90">Discover, compare &amp; book the best vendors</p>
+          {/* One line, always. The headline is the page's single strongest
+              signal, so it scales with the viewport rather than wrapping: at
+              320px `7.2vw` lands near 23px, which fits "Plan Your Dream Wedding"
+              inside the 288px of content width left after `px-4`, and the clamp
+              ceiling stops it growing past the 448px shell. `nowrap` makes the
+              guarantee explicit instead of relying on the sizing alone. */}
+          <h1 className="mt-2 whitespace-nowrap text-[clamp(1.35rem,7.2vw,2rem)] font-bold leading-tight">
+            Plan Your Dream Wedding
+          </h1>
+          <p className="mt-0.5 text-sm text-white/90">{PROPOSITION}</p>
         </div>
       </div>
 
@@ -74,8 +87,9 @@ export default function Home() {
       <div className="mt-6 space-y-7">
         {/* Categories */}
         <section>
-          {/* "View all" opens the rest of the SERVICES, not a vendor list —
-              only eight of the twenty categories fit in the grid below. */}
+          {/* Four categories here, everything else behind "View all" — which
+              opens the SERVICES screen, not a vendor list. Nothing was deleted
+              from the database; only Home's visibility changed. */}
           <SectionHead title="Wedding Services" to="/services" />
           <div className="grid grid-cols-4 gap-x-2 gap-y-4 px-4 pt-3">
             {HOME_CATEGORIES.map((slug) => (
@@ -145,7 +159,7 @@ export default function Home() {
         {/* Blogs */}
         {!!blogs.data?.length && (
           <section>
-            <SectionHead title="Wedding Ideas & Tips" to="/blogs" />
+            <SectionHead title="Wedding Ideas & Inspiration" to="/blogs" />
             <div className="no-scrollbar flex gap-3 overflow-x-auto px-4 pt-3">
               {blogs.data.map((b) => (
                 <Link
@@ -182,7 +196,12 @@ function SectionHead({ title, to }: { title: string; to: string }) {
   return (
     <div className="flex items-center justify-between px-4">
       <h2 className="text-[1.15rem] font-bold text-ink">{title}</h2>
-      <Link to={to} className="flex items-center gap-0.5 text-[13px] font-bold text-[var(--color-primary)]">
+      {/* The negative margins keep the row looking the same while the tap
+          area itself stays a full 44px — the link text alone is only 20px tall. */}
+      <Link
+        to={to}
+        className="-my-2 -mr-2 flex min-h-11 items-center gap-0.5 px-2 text-[13px] font-bold text-[var(--color-primary)]"
+      >
         View all <ChevronRight className="h-4 w-4" />
       </Link>
     </div>

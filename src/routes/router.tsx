@@ -10,6 +10,11 @@ import VendorDetail from './couple/VendorDetail'
 import EnquiryComposer from './couple/EnquiryComposer'
 import CitySelector from './couple/CitySelector'
 import Services from './couple/Services'
+import Contact from './couple/Contact'
+import Bookings from './couple/Bookings'
+import { InboxList, InboxThread } from './couple/Inbox'
+import Notifications from './couple/Notifications'
+import { ReviewPicker, ReviewComposer } from './couple/ReviewComposer'
 import Privacy from './couple/Privacy'
 import { BlogList, BlogDetail } from './couple/Blogs'
 import Careers from './couple/Careers'
@@ -20,6 +25,7 @@ import VendorLogin from './auth/VendorLogin'
 import ResetPassword from './auth/ResetPassword'
 import VendorDashboard from './vendor/Dashboard'
 import VendorLeads from './vendor/Leads'
+import VendorAvailability from './vendor/Availability'
 import NotFound from './NotFound'
 
 // Every route below is written from the site root. That is exactly right for
@@ -53,11 +59,22 @@ export const router = createBrowserRouter([
         children: [
           { path: '/', element: <Home /> },
           { path: '/explore', element: <Explore /> },
+          // The three catalogue tabs. Each is the Explore screen scoped to a
+          // family of categories — same table, same filters, no duplicate screen.
+          { path: '/venues', element: <Explore section="venue" /> },
+          { path: '/vendors', element: <Explore section="vendors" /> },
+          { path: '/shopping', element: <Explore section="shopping" /> },
           { path: '/favourites', element: <Favourites /> },
           { path: '/biodata', element: <Biodata /> },
+          // More-menu destinations. These keep the bottom navigation because
+          // they are places you dwell in, not one-way forms.
+          { path: '/bookings', element: <Bookings /> },
+          { path: '/inbox', element: <InboxList /> },
+          { path: '/notifications', element: <Notifications /> },
           { path: '/more', element: <Profile /> },
           { path: '/vendor', element: <VendorDashboard /> },
           { path: '/vendor/leads', element: <VendorLeads /> },
+          { path: '/vendor/availability', element: <VendorAvailability /> },
         ],
       },
       {
@@ -68,6 +85,10 @@ export const router = createBrowserRouter([
           { path: '/enquiry/:vendorId', element: <EnquiryComposer /> },
           { path: '/city', element: <CitySelector /> },
           { path: '/services', element: <Services /> },
+          { path: '/inbox/:id', element: <InboxThread /> },
+          { path: '/review', element: <ReviewPicker /> },
+          { path: '/review/:vendorId', element: <ReviewComposer /> },
+          { path: '/contact', element: <Contact /> },
           { path: '/blogs', element: <BlogList /> },
           { path: '/blogs/:slug', element: <BlogDetail /> },
           { path: '/careers', element: <Careers /> },

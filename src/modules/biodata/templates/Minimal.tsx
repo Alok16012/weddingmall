@@ -47,7 +47,7 @@ const s = StyleSheet.create({
 
 export function Minimal({ sections, name, headline, photo }: TemplateProps) {
   return (
-    <Document title={`${name} — Matrimonial Biodata`} author="WeddingMall.online">
+    <Document title={`${name} — Matrimonial Biodata`} author="Wedding Mall">
       <Page size="A4" style={s.page}>
         <View style={s.rail} fixed />
 

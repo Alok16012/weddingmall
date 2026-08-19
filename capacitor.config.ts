@@ -17,7 +17,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
  */
 const config: CapacitorConfig = {
   appId: 'online.weddingmall.app',
-  appName: 'WeddingMall.online',
+  appName: 'Wedding Mall',
   webDir: 'dist',
   android: {
     // No cleartext anywhere: Supabase is https-only and so is everything else

@@ -5,21 +5,21 @@ import { CATEGORY_GROUPS, categoryLabel } from '@/types/domain'
 import { categoryDirectory } from '@/services/vendors'
 import { useCity } from '@/hooks/useCity'
 import { Img } from '@/components/ui/Img'
-import { ErrorState, Skeleton } from '@/components/ui/states'
+import { ErrorState } from '@/components/ui/states'
 import { ScreenHeader } from '@/components/layout/ScreenHeader'
 
 /**
- * Wedding Services directory — every category, not the eight Home has room for.
+ * Wedding Services directory — every category, not the four Home shows.
  *
  * This is what "View all" on the Home services row opens. It used to go to
  * /explore, which drops you straight into a flat list of vendors and hides the
- * other twelve service types entirely; the point of "view all" on a row of
+ * other service types entirely; the point of "view all" on a row of
  * categories is to see the rest of the categories.
  */
 export default function Services() {
   const { city } = useCity()
 
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isError, refetch } = useQuery({
     queryKey: ['category-directory', city],
     queryFn: () => categoryDirectory(city ?? undefined),
     staleTime: 5 * 60_000,
@@ -74,17 +74,13 @@ export default function Services() {
                         wrapperClassName="h-12 w-12 shrink-0 ring-1 ring-line"
                         fallback={<Store className="h-4 w-4" aria-hidden />}
                       />
+                      {/* No "N listed" here either — the count still decides
+                          whether the row is shown at all (above), it just isn't
+                          printed at the couple. */}
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[15px] font-semibold text-ink">
                           {categoryLabel(slug)}
                         </p>
-                        {isLoading ? (
-                          <Skeleton className="mt-1 h-3 w-16" />
-                        ) : (
-                          <p className="tnum text-xs text-muted">
-                            {data?.[slug]?.count ?? 0} listed
-                          </p>
-                        )}
                       </div>
                       <ChevronRight className="h-5 w-5 shrink-0 text-muted" aria-hidden />
                     </Link>

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { getSupabase } from '@/services/supabase/client'
 import * as authService from '@/services/auth'
+import { syncShortlist } from '@/services/favourites'
 
 /**
  * Session model for this backend.
@@ -19,6 +20,13 @@ import * as authService from '@/services/auth'
 interface SessionValue {
   /** Supabase auth user email, when a vendor is signed in. */
   email: string | null
+  /**
+   * The auth user id for ANY session — a phone-verified guest as well as a
+   * vendor. Personal history (bookings, inbox, synced shortlist) is keyed on
+   * this, not on `email`, because a guest who verified their mobile has an
+   * account without ever having an email address.
+   */
+  userId: string | null
   isVendor: boolean
   /** True until the initial session has been restored. */
   initializing: boolean
@@ -54,6 +62,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  /**
+   * Merge the device shortlist with the account's as soon as there is a user.
+   * This is what makes "saved on the website, there on the phone" true; it is
+   * a no-op when signed out or when the `shortlists` table isn't there yet.
+   */
+  const userId = session?.user?.id ?? null
+  useEffect(() => {
+    if (!userId) return
+    void syncShortlist()
+  }, [userId])
+
   const signIn = useCallback(async (email: string, password: string) => {
     await authService.signInWithEmail(email, password)
   }, [])
@@ -70,13 +89,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const value = useMemo<SessionValue>(
     () => ({
       email: session?.user?.email ?? null,
+      userId,
       isVendor: !!session?.user?.email,
       initializing,
       signIn,
       sendPasswordReset,
       signOut,
     }),
-    [session, initializing, signIn, sendPasswordReset, signOut],
+    [session, userId, initializing, signIn, sendPasswordReset, signOut],
   )
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>

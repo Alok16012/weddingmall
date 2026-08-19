@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getFavouriteIds, toggleFavourite as toggle } from '@/services/favourites'
-
-const EVENT = 'wm:favourites-changed'
+import {
+  FAVOURITES_CHANGED_EVENT as EVENT,
+  getFavouriteIds,
+  toggleFavourite as toggle,
+} from '@/services/favourites'
 
 /**
- * On-device shortlist (this backend has no favourites table).
- * A window event keeps every mounted component in sync instantly.
+ * The shortlist as this screen sees it.
+ *
+ * The device copy is the source of truth for rendering — it is instant and
+ * works signed out — while `syncShortlist()` merges it with the account copy
+ * on sign-in. A window event keeps every mounted component in step, whichever
+ * of the two changed.
  */
 export function useFavourites() {
   const [ids, setIds] = useState<string[]>(() => getFavouriteIds())

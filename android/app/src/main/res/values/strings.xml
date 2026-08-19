@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">WeddingMall.online</string>
-    <string name="title_activity_main">WeddingMall.online</string>
+    <string name="app_name">Wedding Mall</string>
+    <string name="title_activity_main">Wedding Mall</string>
     <string name="package_name">online.weddingmall.app</string>
     <string name="custom_url_scheme">online.weddingmall.app</string>
 

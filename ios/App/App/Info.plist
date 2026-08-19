@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>WeddingMall.online</string>
+	<string>Wedding Mall</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -37,9 +37,27 @@
 	  Apple rejects vague purpose strings, so both say exactly that.
 	-->
 	<key>NSCameraUsageDescription</key>
-	<string>WeddingMall.online uses the camera only when you choose to take a photo for your matrimonial biodata. The photo stays on this device.</string>
+	<string>Wedding Mall uses the camera only when you choose to take a photo for your matrimonial biodata. The photo stays on this device.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>WeddingMall.online reads a photo from your library only when you pick one for your matrimonial biodata. The photo stays on this device.</string>
+	<string>Wedding Mall reads a photo from your library only when you pick one for your matrimonial biodata. The photo stays on this device.</string>
+	<!--
+	  Deep links. This custom scheme (online.weddingmall.app://blogs/<slug>)
+	  needs no server-side setup. Universal Links over https additionally
+	  require the Associated Domains capability in Xcode and an
+	  apple-app-site-association file on weddingmall.online — see
+	  docs/DEPLOYMENT.md. AppDelegate already forwards both to Capacitor.
+	-->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>online.weddingmall.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>online.weddingmall.app</string>
+			</array>
+		</dict>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

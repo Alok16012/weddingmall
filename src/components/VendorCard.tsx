@@ -2,9 +2,10 @@ import { Link } from 'react-router-dom'
 import { BadgeCheck, Heart, Images, MapPin, Star, Users } from 'lucide-react'
 import type { Vendor } from '@/types/domain'
 import { cn } from '@/lib/cn'
-import { buttonClasses } from './ui/Button'
 import { useFavourites } from '@/hooks/useFavourites'
 import { Img } from './ui/Img'
+import { ContactActions, PriceOrRequest } from './ContactActions'
+import { track } from '@/lib/analytics'
 
 /** Plate pricing is the real, populated price signal on this backend. */
 export function platePrice(v: Vendor): string | null {
@@ -62,8 +63,13 @@ export function VendorCard({ vendor, index }: { vendor: Vendor; index?: number }
           </span>
         )}
 
+        {/* Photo count. The icon carries the meaning visually; without the label a
+            screen reader would just hear a bare number beside the listing name. */}
         {vendor.images.length > 1 && (
-          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-ink/70 px-2 py-1 text-[11px] font-semibold text-white">
+          <span
+            aria-label={`${vendor.images.length} photos`}
+            className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-[var(--radius-pill)] bg-ink/70 px-2 py-1 text-[11px] font-semibold text-white"
+          >
             <Images className="h-3.5 w-3.5" aria-hidden /> {vendor.images.length}
           </span>
         )}
@@ -73,9 +79,11 @@ export function VendorCard({ vendor, index }: { vendor: Vendor; index?: number }
           onClick={(e) => {
             e.preventDefault()
             toggle(vendor.id)
+            track('shortlist_listing', { vendor_id: vendor.id, added: !fav, surface: 'card' })
           }}
           aria-pressed={fav}
           aria-label={fav ? 'Remove from shortlist' : 'Add to shortlist'}
+          data-tour="shortlist"
           className="tap absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-[var(--shadow-card)]"
         >
           <Heart
@@ -125,22 +133,18 @@ export function VendorCard({ vendor, index }: { vendor: Vendor; index?: number }
         )}
 
         <div className="mt-3 flex items-end justify-between gap-2">
-          <span className="text-sm font-bold text-[var(--color-primary)]">
-            {price ?? 'Price on Request'}
-          </span>
-        </div>
-
-        <div className="mt-3 grid grid-cols-2 gap-2.5">
+          <PriceOrRequest vendor={vendor} price={price} />
           <Link
-            to={`/enquiry/${vendor.id}`}
-            className={buttonClasses({ variant: 'outline', size: 'sm' })}
+            to={`/vendor/${vendor.id}`}
+            className="tap shrink-0 text-sm font-semibold text-ink-soft underline underline-offset-4"
           >
-            Send Enquiry
-          </Link>
-          <Link to={`/vendor/${vendor.id}`} className={buttonClasses({ size: 'sm' })}>
             View Details
           </Link>
         </div>
+
+        {/* Call · WhatsApp · Enquire. The first two appear only for a vendor
+            with a registered number; otherwise Enquire takes the row. */}
+        <ContactActions vendor={vendor} size="sm" className="mt-3" />
       </div>
     </article>
   )
