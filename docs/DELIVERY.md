@@ -63,8 +63,22 @@ genuinely native or platform-conditional.
 - Call uses the vendor's own registered number. WhatsApp opens with
   "Hi, I found your listing on Wedding Mall and would like to know more about
   availability and pricing."
-- CTA group is Call · WhatsApp · Enquire. **Call and WhatsApp do not render at
-  all** until `vendors.phone` exists (see Known issues) — no dummy CTA ships.
+- CTA group is Call · WhatsApp · Enquire, on the listing rows (`/venues`,
+  `/vendors`), the cards and the detail screen.
+- `resolveVendorContact()` in `src/lib/contact.ts` decides where a tap lands.
+  A vendor with its own number is reached directly. No vendor has one yet — the
+  live `vendors` table has no phone column — so both actions currently route to
+  the staffed Wedding Mall desk (+91 9560679117), with the listing name and an
+  8-character listing reference carried in the WhatsApp opener so the team knows
+  which venue is being asked about. Both numbers are real and answered: nothing
+  here is a dummy CTA.
+- That routing is disclosed to the user, never hidden: the detail screen and
+  cards show "Call and WhatsApp reach the Wedding Mall helpdesk, who will connect
+  you with this listing", and the compact row icons carry the same wording in
+  their `aria-label` and `title`. The `call_vendor` / `whatsapp_vendor` events
+  both send `via_desk` so the split is measurable.
+- The moment migration 0001 lands and a vendor row carries a number, that
+  vendor's own line wins automatically on every surface — no further code change.
 
 ### Bookings, Inbox, Shortlist, Reviews
 
@@ -241,10 +255,12 @@ capability-gated empty states.
    `notifications` and `user_app_state` all return 404 until migration 0001/0002
    is applied. Every dependent feature is built and gated, not mocked — it will
    light up the moment the migrations run.
-2. **`vendors` has no phone/whatsapp column,** so Call and WhatsApp currently
-   render for nobody. This is deliberate: a button that cannot dial is a dummy
-   CTA. Migration 0001 adds the columns; the numbers themselves then have to be
-   filled in per vendor.
+2. **`vendors` has no phone/whatsapp column,** so no listing can be dialled
+   directly. Call and WhatsApp therefore route to the Wedding Mall desk
+   (+91 9560679117) and say so on screen — a real staffed line, not a dummy CTA,
+   but the owner's team answers rather than the venue and has to hand the enquiry
+   on. Migration 0001 adds the columns; once a vendor's number is filled in, that
+   vendor's own line takes over automatically.
 3. **Push notifications are not implemented.** In-app notifications are.
 4. **Review photo upload is not implemented** — it needs a Supabase Storage
    bucket that does not exist yet.

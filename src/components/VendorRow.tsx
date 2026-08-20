@@ -6,7 +6,8 @@ import { cn } from '@/lib/cn'
 import { platePrice } from './VendorCard'
 import { useFavourites } from '@/hooks/useFavourites'
 import { PriceOrRequest } from './ContactActions'
-import { telHref, whatsappHref } from '@/lib/contact'
+import { resolveVendorContact } from '@/lib/contact'
+import { BRAND_NAME } from '@/config/company'
 import { track } from '@/lib/analytics'
 import { MessageCircle, Phone } from 'lucide-react'
 
@@ -28,11 +29,10 @@ export function VendorRow({ vendor, index }: { vendor: Vendor; index?: number })
   const price = platePrice(vendor)
   const seating = vendor.amenities.seatingCapacity
   const floating = vendor.amenities.floatingCapacity
-  const tel = telHref(vendor.phone)
-  const wa = whatsappHref(vendor.whatsapp, {
-    vendorName: vendor.name,
-    listingRef: vendor.id.slice(0, 8).toUpperCase(),
-  })
+  const { tel, wa, viaDesk } = resolveVendorContact(vendor)
+  // The row has no space for a sentence, so the destination lives in the label
+  // a screen reader and a long-press tooltip both read out.
+  const via = viaDesk ? ` (${BRAND_NAME} helpdesk)` : ''
 
   return (
     <article
@@ -119,9 +119,12 @@ export function VendorRow({ vendor, index }: { vendor: Vendor; index?: number })
               {tel && (
                 <a
                   href={tel}
-                  onClick={() => track('call_vendor', { vendor_id: vendor.id, surface: 'row' })}
-                  aria-label={`Call ${vendor.name}`}
-                  className="tap grid h-8 w-8 place-items-center rounded-full border border-line text-ink-soft"
+                  onClick={() =>
+                    track('call_vendor', { vendor_id: vendor.id, surface: 'row', via_desk: viaDesk })
+                  }
+                  aria-label={`Call about ${vendor.name}${via}`}
+                  title={`Call about ${vendor.name}${via}`}
+                  className="tap relative grid h-8 w-8 place-items-center rounded-full border border-line text-ink-soft before:absolute before:-inset-1.5 before:content-['']"
                 >
                   <Phone className="h-3.5 w-3.5" aria-hidden />
                 </a>
@@ -131,9 +134,12 @@ export function VendorRow({ vendor, index }: { vendor: Vendor; index?: number })
                   href={wa}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => track('whatsapp_vendor', { vendor_id: vendor.id, surface: 'row' })}
-                  aria-label={`WhatsApp ${vendor.name}`}
-                  className="tap grid h-8 w-8 place-items-center rounded-full border border-success text-success"
+                  onClick={() =>
+                    track('whatsapp_vendor', { vendor_id: vendor.id, surface: 'row', via_desk: viaDesk })
+                  }
+                  aria-label={`WhatsApp about ${vendor.name}${via}`}
+                  title={`WhatsApp about ${vendor.name}${via}`}
+                  className="tap relative grid h-8 w-8 place-items-center rounded-full border border-success text-success before:absolute before:-inset-1.5 before:content-['']"
                 >
                   <MessageCircle className="h-3.5 w-3.5" aria-hidden />
                 </a>

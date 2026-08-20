@@ -1,19 +1,19 @@
 import { Link } from 'react-router-dom'
 import { MessageCircle, Phone, Send } from 'lucide-react'
 import type { Vendor } from '@/types/domain'
-import { telHref, whatsappHref } from '@/lib/contact'
+import { resolveVendorContact } from '@/lib/contact'
+import { BRAND_NAME } from '@/config/company'
 import { track } from '@/lib/analytics'
 import { cn } from '@/lib/cn'
 
 /**
  * Call · WhatsApp · Enquire — the CTA group on cards and the detail screen.
  *
- * Call and WhatsApp render only for a vendor who actually has a registered
- * number. On the live database today no vendor does (`vendors.phone` arrives
- * with migration 0001), so those two buttons are simply absent and Enquire —
- * which works against the real `leads` table — takes the full width. That is
- * deliberate: a dial button that cannot dial is exactly the dummy CTA the brief
- * rules out.
+ * A vendor with a registered number is reached directly. Nobody has one yet, so
+ * both actions currently route to the Wedding Mall desk — a real staffed line,
+ * carrying the listing name and reference so the team knows what is being asked
+ * about. `viaDesk` is surfaced as visible text wherever there is room for it:
+ * the caller has to know they are reaching Wedding Mall and not the venue.
  */
 export function ContactActions({
   vendor,
@@ -27,12 +27,7 @@ export function ContactActions({
   size?: 'sm' | 'md'
   className?: string
 }) {
-  const tel = telHref(vendor.phone)
-  const wa = whatsappHref(vendor.whatsapp, {
-    vendorName: vendor.name,
-    listingRef: vendor.id.slice(0, 8).toUpperCase(),
-    eventDate,
-  })
+  const { tel, wa, viaDesk } = resolveVendorContact(vendor, { eventDate })
 
   const base = cn(
     'tap inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-field)] border font-semibold',
@@ -40,41 +35,55 @@ export function ContactActions({
   )
   const icon = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4'
 
+  const via = viaDesk ? ` (${BRAND_NAME} helpdesk)` : ''
+
   return (
-    <div
-      data-tour="contact"
-      className={cn('grid gap-2', tel || wa ? 'grid-cols-3' : 'grid-cols-1', className)}
-    >
-      {tel && (
-        <a
-          href={tel}
-          onClick={() => track('call_vendor', { vendor_id: vendor.id, vendor_name: vendor.name })}
-          className={cn(base, 'border-line bg-surface text-ink')}
-          aria-label={`Call ${vendor.name}`}
+    <div className={className}>
+      <div data-tour="contact" className={cn('grid gap-2', tel || wa ? 'grid-cols-3' : 'grid-cols-1')}>
+        {tel && (
+          <a
+            href={tel}
+            onClick={() =>
+              track('call_vendor', { vendor_id: vendor.id, vendor_name: vendor.name, via_desk: viaDesk })
+            }
+            className={cn(base, 'border-line bg-surface text-ink')}
+            aria-label={`Call about ${vendor.name}${via}`}
+          >
+            <Phone className={icon} aria-hidden /> Call
+          </a>
+        )}
+        {wa && (
+          <a
+            href={wa}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() =>
+              track('whatsapp_vendor', { vendor_id: vendor.id, vendor_name: vendor.name, via_desk: viaDesk })
+            }
+            className={cn(base, 'border-success bg-success-100 text-success')}
+            aria-label={`WhatsApp about ${vendor.name}${via}`}
+          >
+            <MessageCircle className={icon} aria-hidden /> WhatsApp
+          </a>
+        )}
+        <Link
+          to={`/enquiry/${vendor.id}`}
+          data-tour="enquire"
+          className={cn(base, 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white')}
+          aria-label={`Send an enquiry to ${vendor.name}`}
         >
-          <Phone className={icon} aria-hidden /> Call
-        </a>
+          <Send className={icon} aria-hidden /> Enquire
+        </Link>
+      </div>
+
+      {/* Said plainly, because the person tapping Call believes they are ringing
+          the venue. Only the roomy size has space for it; the compact card relies
+          on the aria-label above and the detail screen, which always shows it. */}
+      {viaDesk && size === 'md' && (
+        <p className="mt-1.5 text-center text-xs text-muted">
+          Call and WhatsApp reach the {BRAND_NAME} helpdesk, who will connect you with this listing.
+        </p>
       )}
-      {wa && (
-        <a
-          href={wa}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => track('whatsapp_vendor', { vendor_id: vendor.id, vendor_name: vendor.name })}
-          className={cn(base, 'border-success bg-success-100 text-success')}
-          aria-label={`Message ${vendor.name} on WhatsApp`}
-        >
-          <MessageCircle className={icon} aria-hidden /> WhatsApp
-        </a>
-      )}
-      <Link
-        to={`/enquiry/${vendor.id}`}
-        data-tour="enquire"
-        className={cn(base, 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white')}
-        aria-label={`Send an enquiry to ${vendor.name}`}
-      >
-        <Send className={icon} aria-hidden /> Enquire
-      </Link>
     </div>
   )
 }
